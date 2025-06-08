@@ -10,11 +10,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useAuthContext } from "../context/AuthContext";
 import { LoveBackground, LoadingIndicator } from "../components";
-import { formatDateString } from "../utils/dateUtils";
 import {
   createReminder,
   REMINDER_TYPES,
@@ -48,33 +48,17 @@ const CreateReminderScreen = ({ navigation, route }) => {
   const [selectedPriority, setSelectedPriority] = useState(
     REMINDER_PRIORITIES.MEDIUM
   );
-
-  // Date and time state
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
-  const [dateDay, setDateDay] = useState("");
-  const [dateMonth, setDateMonth] = useState("");
-  const [dateYear, setDateYear] = useState("");
-  const [timeHour, setTimeHour] = useState("");
-  const [timeMinute, setTimeMinute] = useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  useEffect(() => {
-    loadUserProfile();
-
-    // Initialize default date/time values
+  // Date and time state - simplified with DateTimePicker
+  const [selectedDateTime, setSelectedDateTime] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(9, 0, 0, 0); // 9:00 AM
-
-    setSelectedDate(tomorrow);
-    setSelectedTime(tomorrow);
-
-    setDateDay(tomorrow.getDate().toString());
-    setDateMonth((tomorrow.getMonth() + 1).toString());
-    setDateYear(tomorrow.getFullYear().toString());
-    setTimeHour("9");
-    setTimeMinute("0");
+    return tomorrow;
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  useEffect(() => {
+    loadUserProfile();
   }, [user]);
 
   const loadUserProfile = async () => {
@@ -91,7 +75,6 @@ const CreateReminderScreen = ({ navigation, route }) => {
       setLoading(false);
     }
   };
-
   const handleCreateReminder = async () => {
     if (!title.trim()) {
       Alert.alert("Thiếu tiêu đề", "Vui lòng nhập tiêu đề cho nhắc nhở.");
@@ -113,53 +96,8 @@ const CreateReminderScreen = ({ navigation, route }) => {
       return;
     }
 
-    // Validate and combine date and time
-    const dayNum = parseInt(dateDay);
-    const monthNum = parseInt(dateMonth);
-    const yearNum = parseInt(dateYear);
-    const hourNum = parseInt(timeHour);
-    const minuteNum = parseInt(timeMinute);
-
-    if (
-      isNaN(dayNum) ||
-      isNaN(monthNum) ||
-      isNaN(yearNum) ||
-      isNaN(hourNum) ||
-      isNaN(minuteNum)
-    ) {
-      Alert.alert(
-        "Thời gian không hợp lệ",
-        "Vui lòng nhập đầy đủ ngày giờ hợp lệ."
-      );
-      return;
-    }
-
-    if (
-      dayNum < 1 ||
-      dayNum > 31 ||
-      monthNum < 1 ||
-      monthNum > 12 ||
-      hourNum < 0 ||
-      hourNum > 23 ||
-      minuteNum < 0 ||
-      minuteNum > 59
-    ) {
-      Alert.alert(
-        "Thời gian không hợp lệ",
-        "Vui lòng nhập thời gian trong phạm vi hợp lệ."
-      );
-      return;
-    }
-
-    const dueDateTime = new Date(
-      yearNum,
-      monthNum - 1,
-      dayNum,
-      hourNum,
-      minuteNum
-    );
-
-    if (isNaN(dueDateTime.getTime()) || dueDateTime <= new Date()) {
+    // Validate date time - must be in the future
+    if (selectedDateTime <= new Date()) {
       Alert.alert(
         "Thời gian không hợp lệ",
         "Vui lòng chọn thời gian trong tương lai."
@@ -176,7 +114,7 @@ const CreateReminderScreen = ({ navigation, route }) => {
         category: selectedCategory,
         priority: selectedPriority,
         type: selectedType,
-        dueDate: dueDateTime,
+        dueDate: selectedDateTime,
         userId: user.uid,
         coupleId:
           selectedType === REMINDER_TYPES.COUPLE ? userProfile?.coupleId : null,
@@ -250,41 +188,6 @@ const CreateReminderScreen = ({ navigation, route }) => {
     } else {
       navigation.goBack();
     }
-  };
-
-  const formatDateTime = () => {
-    if (!dateDay || !dateMonth || !dateYear || !timeHour || !timeMinute) {
-      return "Chưa đặt thời gian";
-    }
-
-    const dayNum = parseInt(dateDay);
-    const monthNum = parseInt(dateMonth);
-    const yearNum = parseInt(dateYear);
-    const hourNum = parseInt(timeHour);
-    const minuteNum = parseInt(timeMinute);
-
-    if (
-      isNaN(dayNum) ||
-      isNaN(monthNum) ||
-      isNaN(yearNum) ||
-      isNaN(hourNum) ||
-      isNaN(minuteNum)
-    ) {
-      return "Thời gian không hợp lệ";
-    }
-    const combined = new Date(
-      yearNum,
-      monthNum - 1,
-      dayNum,
-      hourNum,
-      minuteNum
-    );
-
-    if (isNaN(combined.getTime())) {
-      return "Thời gian không hợp lệ";
-    }
-
-    return formatDateString(combined, "datetime", "vi-VN");
   };
 
   const renderCategorySelector = () => {
@@ -465,73 +368,103 @@ const CreateReminderScreen = ({ navigation, route }) => {
       </View>
     );
   };
-
   const renderDateTimeSelector = () => {
+    const formatDateTime = () => {
+      return selectedDateTime.toLocaleString("vi-VN", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
+
+    const handleDateConfirm = (date) => {
+      setShowDatePicker(false);
+      // Keep the current time but update the date
+      const newDateTime = new Date(selectedDateTime);
+      newDateTime.setFullYear(date.getFullYear());
+      newDateTime.setMonth(date.getMonth());
+      newDateTime.setDate(date.getDate());
+      setSelectedDateTime(newDateTime);
+    };
+
+    const handleTimeConfirm = (time) => {
+      setShowTimePicker(false);
+      // Keep the current date but update the time
+      const newDateTime = new Date(selectedDateTime);
+      newDateTime.setHours(time.getHours());
+      newDateTime.setMinutes(time.getMinutes());
+      setSelectedDateTime(newDateTime);
+    };
+
     return (
       <View style={styles.selectorSection}>
         <Text style={styles.selectorTitle}>Thời gian nhắc nhở</Text>
+        {/* Date and Time Buttons */}
+        <View style={styles.dateTimeContainer}>
+          {/* Date Button */}
+          <TouchableOpacity
+            style={styles.dateTimeButton}
+            onPress={() => setShowDatePicker(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="calendar-outline" size={20} color="#E91E63" />
+            <Text style={styles.dateTimeText}>
+              {selectedDateTime.toLocaleDateString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+            </Text>
+          </TouchableOpacity>
 
-        {/* Date Input */}
-        <View style={styles.dateInputContainer}>
-          <Text style={styles.dateLabel}>Ngày:</Text>
-          <View style={styles.dateInputRow}>
-            <TextInput
-              style={styles.dateInput}
-              value={dateDay}
-              onChangeText={setDateDay}
-              placeholder="DD"
-              maxLength={2}
-              keyboardType="numeric"
-            />
-            <Text style={styles.dateSeparator}>/</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={dateMonth}
-              onChangeText={setDateMonth}
-              placeholder="MM"
-              maxLength={2}
-              keyboardType="numeric"
-            />
-            <Text style={styles.dateSeparator}>/</Text>
-            <TextInput
-              style={[styles.dateInput, styles.yearInput]}
-              value={dateYear}
-              onChangeText={setDateYear}
-              placeholder="YYYY"
-              maxLength={4}
-              keyboardType="numeric"
-            />
-          </View>
+          {/* Time Button */}
+          <TouchableOpacity
+            style={styles.dateTimeButton}
+            onPress={() => setShowTimePicker(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="time-outline" size={20} color="#E91E63" />
+            <Text style={styles.dateTimeText}>
+              {selectedDateTime.toLocaleTimeString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        {/* Time Input */}
-        <View style={styles.dateInputContainer}>
-          <Text style={styles.dateLabel}>Giờ:</Text>
-          <View style={styles.dateInputRow}>
-            <TextInput
-              style={styles.dateInput}
-              value={timeHour}
-              onChangeText={setTimeHour}
-              placeholder="HH"
-              maxLength={2}
-              keyboardType="numeric"
-            />
-            <Text style={styles.dateSeparator}>:</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={timeMinute}
-              onChangeText={setTimeMinute}
-              placeholder="MM"
-              maxLength={2}
-              keyboardType="numeric"
-            />
-            <Text style={styles.timeNote}>(24h)</Text>
-          </View>
-        </View>
-
+        {/* Preview */}
         <Text style={styles.dateTimePreview}>
           Nhắc nhở vào: {formatDateTime()}
         </Text>
+        {/* Date Picker Modal */}
+        <DateTimePickerModal
+          isVisible={showDatePicker}
+          mode="date"
+          onConfirm={handleDateConfirm}
+          onCancel={() => setShowDatePicker(false)}
+          date={selectedDateTime}
+          minimumDate={new Date()}
+          maximumDate={(() => {
+            const maxDate = new Date();
+            maxDate.setFullYear(maxDate.getFullYear() + 5);
+            return maxDate;
+          })()}
+          locale="vi"
+        />
+        {/* Time Picker Modal */}
+        <DateTimePickerModal
+          isVisible={showTimePicker}
+          mode="time"
+          onConfirm={handleTimeConfirm}
+          onCancel={() => setShowTimePicker(false)}
+          date={selectedDateTime}
+          is24Hour={true}
+          locale="vi"
+        />
       </View>
     );
   };
@@ -837,6 +770,7 @@ const styles = StyleSheet.create({
   dateTimeContainer: {
     flexDirection: "row",
     gap: 12,
+    marginBottom: 16,
   },
   dateTimeButton: {
     flex: 1,
@@ -866,52 +800,6 @@ const styles = StyleSheet.create({
     color: "#8E24AA",
     textAlign: "center",
     marginTop: 12,
-    fontStyle: "italic",
-  },
-  dateInputContainer: {
-    marginBottom: 16,
-  },
-  dateLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#C2185B",
-    marginBottom: 8,
-  },
-  dateInputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dateInput: {
-    backgroundColor: "#FFF",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: "#333",
-    borderWidth: 1,
-    borderColor: "#FCE4EC",
-    textAlign: "center",
-    minWidth: 50,
-    shadowColor: "#E91E63",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  yearInput: {
-    minWidth: 80,
-  },
-  dateSeparator: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#E91E63",
-    marginHorizontal: 8,
-  },
-  timeNote: {
-    fontSize: 12,
-    color: "#8E24AA",
-    marginLeft: 8,
     fontStyle: "italic",
   },
 });
