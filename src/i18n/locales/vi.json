@@ -1,0 +1,167 @@
+{
+  "auth": {
+    "login": {
+      "title": "Chào mừng em yêu trở lại! 💕",
+      "subtitle": "Đăng nhập để tiếp tục câu chuyện tình yêu của chúng ta",
+      "emailPlaceholder": "Nhập email của em",
+      "passwordPlaceholder": "Nhập mật khẩu của em",
+      "loginButton": "Đăng nhập với tình yêu 💖",
+      "createAccountButton": "Tạo tài khoản mới",
+      "loadingMessage": "Đang đăng nhập với tình yêu...",
+      "footerText": "Được tạo ra với 💝 dành cho những cặp đôi yêu nhau",
+      "or": "hoặc"
+    },
+    "signUp": {
+      "title": "Tham gia vào tình yêu! 💕",
+      "subtitle": "Tạo tài khoản để bắt đầu hành trình lãng mạn của chúng ta",
+      "namePlaceholder": "Tên đáng yêu của em",
+      "emailPlaceholder": "Địa chỉ email của em",
+      "passwordPlaceholder": "Tạo mật khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu",
+      "signUpButton": "Tạo tài khoản với tình yêu 💖",
+      "signInButton": "Đã có tài khoản? Đăng nhập",
+      "loadingMessage": "Đang tạo tài khoản tình yêu của em...",
+      "footerText": "Bằng cách đăng ký, em đồng ý lan tỏa tình yêu và lòng tốt 💝",
+      "welcomeTitle": "Chào mừng em yêu! 💕",
+      "welcomeMessage": "Tài khoản của em đã được tạo thành công! Hồ sơ của em sẽ được thiết lập tự động.",
+      "or": "hoặc"
+    },
+    "validation": {
+      "emailRequired": "Email là bắt buộc",
+      "emailInvalid": "Vui lòng nhập email hợp lệ",
+      "passwordRequired": "Mật khẩu là bắt buộc",
+      "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
+      "nameRequired": "Tên là bắt buộc",
+      "nameMinLength": "Tên phải có ít nhất 2 ký tự",
+      "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+      "passwordsNoMatch": "Mật khẩu không khớp"
+    },
+    "errors": {
+      "loginFailed": "Đăng nhập thất bại",
+      "signUpFailed": "Đăng ký thất bại",
+      "unexpectedError": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+    }
+  },
+  "navigation": {
+    "tabs": {
+      "home": "Trang chủ",
+      "profile": "Hồ sơ",
+      "ourLove": "Tình yêu của chúng ta",
+      "messages": "Tin nhắn",
+      "settings": "Cài đặt"
+    },
+    "headers": {
+      "myProfile": "Hồ sơ của em",
+      "editProfile": "Chỉnh sửa hồ sơ",
+      "deleteAccount": "Xóa tài khoản",
+      "settings": "Cài đặt",
+      "messages": "Tin nhắn"
+    }
+  },
+  "common": {
+    "loading": "Đang tải câu chuyện tình yêu của chúng ta...",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "ok": "Đồng ý",
+    "yes": "Có",
+    "no": "Không",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "done": "Hoàn thành",
+    "retry": "Thử lại",
+    "close": "Đóng"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "language": {
+      "title": "Ngôn ngữ",
+      "subtitle": "Chọn ngôn ngữ em yêu thích",
+      "english": "Tiếng Anh",
+      "vietnamese": "Tiếng Việt",
+      "changeSuccess": "Đã thay đổi ngôn ngữ thành công",
+      "changeError": "Không thể thay đổi ngôn ngữ"
+    },
+    "account": {
+      "title": "Tài khoản",
+      "profile": "Chỉnh sửa hồ sơ",
+      "privacy": "Quyền riêng tư",
+      "security": "Bảo mật"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "loveReminders": "Nhắc nhở tình yêu",
+      "messages": "Tin nhắn",
+      "anniversaries": "Kỷ niệm"
+    },
+    "about": {
+      "title": "Về ứng dụng",
+      "version": "Phiên bản",
+      "support": "Hỗ trợ",
+      "feedback": "Phản hồi"
+    }
+  },
+  "profile": {
+    "title": "Hồ sơ của em",
+    "editTitle": "Chỉnh sửa hồ sơ",
+    "displayName": "Tên hiển thị",
+    "email": "Email",
+    "bio": "Giới thiệu",
+    "phoneNumber": "Số điện thoại",
+    "createdAt": "Thành viên từ",
+    "saveSuccess": "Đã cập nhật hồ sơ thành công",
+    "saveError": "Không thể cập nhật hồ sơ"
+  },
+  "messages": {
+    "title": "Tin nhắn tình yêu",
+    "noMessages": "Chưa có tin nhắn nào",
+    "startConversation": "Bắt đầu cuộc trò chuyện đầu tiên",
+    "typeMessage": "Nhập tin nhắn tình yêu của em...",
+    "send": "Gửi"
+  },
+  "couple": {
+    "title": "Tình yêu của chúng ta",
+    "connect": "Kết nối với người yêu của em",
+    "connected": "Đã kết nối bằng tình yêu",
+    "invite": "Mời người yêu của em"
+  },
+  "notes": {
+    "title": "Ghi chú tình yêu",
+    "private": "Ghi chú riêng tư",
+    "shared": "Ghi chú chung",
+    "categories": {
+      "loveLetters": "Thư tình",
+      "memories": "Kỷ niệm", 
+      "dreams": "Ước mơ",
+      "gratitude": "Lòng biết ơn"
+    },
+    "create": "Tạo ghi chú",
+    "edit": "Chỉnh sửa ghi chú",
+    "delete": "Xóa ghi chú",
+    "save": "Lưu ghi chú",
+    "content": "Nội dung ghi chú",
+    "category": "Danh mục"
+  },
+  "reminders": {
+    "title": "Nhắc nhở tình yêu",
+    "personal": "Nhắc nhở cá nhân",
+    "couple": "Nhắc nhở cho đôi",
+    "create": "Tạo nhắc nhở",
+    "edit": "Chỉnh sửa nhắc nhở",
+    "delete": "Xóa nhắc nhở",
+    "title_field": "Tiêu đề nhắc nhở",
+    "description": "Mô tả",
+    "dueDate": "Ngày đến hạn",
+    "recurring": "Lặp lại",
+    "completed": "Đã hoàn thành"
+  },
+  "peacefulDays": {
+    "title": "Những ngày bình yên",
+    "counter": "{{count}} ngày bình yên",
+    "streak": "Chuỗi hiện tại: {{count}} ngày",
+    "longestStreak": "Chuỗi dài nhất: {{count}} ngày",
+    "celebration": "Chúc mừng anh em! 🎉",
+    "milestone": "Chúng ta đã có {{count}} ngày bình yên bên nhau!"
+  }
+}

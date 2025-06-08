@@ -1,0 +1,167 @@
+{
+  "auth": {
+    "login": {
+      "title": "Welcome Back! 💕",
+      "subtitle": "Sign in to continue your love story",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Enter your password",
+      "loginButton": "Sign In with Love 💖",
+      "createAccountButton": "Create New Account",
+      "loadingMessage": "Signing you in with love...",
+      "footerText": "Made with 💝 for couples in love",
+      "or": "or"
+    },
+    "signUp": {
+      "title": "Join the Love! 💕",
+      "subtitle": "Create your account to start your romantic journey",
+      "namePlaceholder": "Your lovely name",
+      "emailPlaceholder": "Your email address",
+      "passwordPlaceholder": "Create a password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "signUpButton": "Create Account with Love 💖",
+      "signInButton": "Already have an account? Sign In",
+      "loadingMessage": "Creating your love account...",
+      "footerText": "By signing up, you agree to spread love and kindness 💝",
+      "welcomeTitle": "Welcome! 💕",
+      "welcomeMessage": "Your account was created successfully! Your profile will be set up automatically.",
+      "or": "or"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "nameRequired": "Name is required",
+      "nameMinLength": "Name must be at least 2 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsNoMatch": "Passwords do not match"
+    },
+    "errors": {
+      "loginFailed": "Login Failed",
+      "signUpFailed": "Sign Up Failed",
+      "unexpectedError": "An unexpected error occurred. Please try again."
+    }
+  },
+  "navigation": {
+    "tabs": {
+      "home": "Home",
+      "profile": "Profile",
+      "ourLove": "Our Love",
+      "messages": "Messages",
+      "settings": "Settings"
+    },
+    "headers": {
+      "myProfile": "My Profile",
+      "editProfile": "Edit Profile",
+      "deleteAccount": "Delete Account",
+      "settings": "Settings",
+      "messages": "Messages"
+    }
+  },
+  "common": {
+    "loading": "Loading your love story...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "retry": "Retry",
+    "close": "Close"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "title": "Language",
+      "subtitle": "Choose your preferred language",
+      "english": "English",
+      "vietnamese": "Tiếng Việt",
+      "changeSuccess": "Language changed successfully",
+      "changeError": "Failed to change language"
+    },
+    "account": {
+      "title": "Account",
+      "profile": "Edit Profile",
+      "privacy": "Privacy",
+      "security": "Security"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "loveReminders": "Love Reminders",
+      "messages": "Messages",
+      "anniversaries": "Anniversaries"
+    },
+    "about": {
+      "title": "About",
+      "version": "Version",
+      "support": "Support",
+      "feedback": "Feedback"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "editTitle": "Edit Profile",
+    "displayName": "Display Name",
+    "email": "Email",
+    "bio": "Bio",
+    "phoneNumber": "Phone Number",
+    "createdAt": "Member since",
+    "saveSuccess": "Profile updated successfully",
+    "saveError": "Failed to update profile"
+  },
+  "messages": {
+    "title": "Messages",
+    "noMessages": "No messages yet",
+    "startConversation": "Start your first conversation",
+    "typeMessage": "Type your love message...",
+    "send": "Send"
+  },
+  "couple": {
+    "title": "Our Love",
+    "connect": "Connect with your partner",
+    "connected": "Connected with love",
+    "invite": "Invite your partner"
+  },
+  "notes": {
+    "title": "Love Notes",
+    "private": "Private Notes",
+    "shared": "Shared Notes",
+    "categories": {
+      "loveLetters": "Love Letters",
+      "memories": "Memories", 
+      "dreams": "Dreams",
+      "gratitude": "Gratitude"
+    },
+    "create": "Create Note",
+    "edit": "Edit Note",
+    "delete": "Delete Note",
+    "save": "Save Note",
+    "content": "Note content",
+    "category": "Category"
+  },
+  "reminders": {
+    "title": "Love Reminders",
+    "personal": "Personal Reminders",
+    "couple": "Couple Reminders",
+    "create": "Create Reminder",
+    "edit": "Edit Reminder",
+    "delete": "Delete Reminder",
+    "title_field": "Reminder Title",
+    "description": "Description",
+    "dueDate": "Due Date",
+    "recurring": "Recurring",
+    "completed": "Completed"
+  },
+  "peacefulDays": {
+    "title": "Peaceful Days",
+    "counter": "{{count}} peaceful days",
+    "streak": "Current streak: {{count}} days",
+    "longestStreak": "Longest streak: {{count}} days",
+    "celebration": "Congratulations! 🎉",
+    "milestone": "You've reached {{count}} peaceful days together!"
+  }
+}

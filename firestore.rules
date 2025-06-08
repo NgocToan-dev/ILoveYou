@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Peaceful Days collection - allow access to couple members
+    match /peacefulDays/{coupleId} {
+      allow read, write: if request.auth != null && (
+        // Check if user is part of this couple
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == coupleId
+      );
+    }
+    
+    // Love Days collection - allow access to couple members
+    match /loveDays/{coupleId} {
+      allow read, write: if request.auth != null && (
+        // Check if user is part of this couple
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == coupleId
+      );
+    }
+    
+    // Couples collection - allow access to couple members
+    match /couples/{coupleId} {
+      allow read, write: if request.auth != null && (
+        // Check if user is one of the couple members
+        resource.data.user1.id == request.auth.uid ||
+        resource.data.user2.id == request.auth.uid
+      );
+      allow create: if request.auth != null;
+    }
+    
+    // Couple Invitations collection
+    match /coupleInvitations/{invitationId} {
+      // Allow anyone authenticated to read (to join with code)
+      allow read: if request.auth != null;
+      // Allow creation by authenticated users
+      allow create: if request.auth != null && 
+        request.resource.data.createdBy == request.auth.uid;
+      // Allow updates by creator or accepter
+      allow update: if request.auth != null && (
+        resource.data.createdBy == request.auth.uid ||
+        request.resource.data.acceptedBy == request.auth.uid
+      );
+      // Allow deletion by creator
+      allow delete: if request.auth != null && 
+        resource.data.createdBy == request.auth.uid;
+    }
+    
+    // Notes collection
+    match /notes/{noteId} {
+      // Private notes - only the owner can access
+      allow read, write: if request.auth != null && 
+        resource.data.type == 'private' && 
+        resource.data.userId == request.auth.uid;
+      
+      // Shared notes - couple members can access
+      allow read, write: if request.auth != null && 
+        resource.data.type == 'shared' && (
+          resource.data.userId == request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == resource.data.coupleId)
+        );
+      
+      // Allow creation by authenticated users
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Reminders collection
+    match /reminders/{reminderId} {
+      // Personal reminders - only the owner can access
+      allow read, write: if request.auth != null && 
+        resource.data.type == 'personal' && 
+        resource.data.userId == request.auth.uid;
+      
+      // Couple reminders - couple members can access
+      allow read, write: if request.auth != null && 
+        resource.data.type == 'couple' && (
+          resource.data.userId == request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == resource.data.coupleId)
+        );
+      
+      // Allow creation by authenticated users
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Legacy collections (if they exist)
+    match /messages/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
