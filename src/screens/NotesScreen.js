@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuthContext } from '../context/AuthContext';
 import { LoveBackground, LoadingIndicator } from '../components';
+import { formatDateString } from '../utils/dateUtils';
 import {
   NOTE_CATEGORIES,
   NOTE_TYPES,
@@ -158,11 +159,9 @@ const NotesScreen = ({ navigation }) => {
 
   const navigateToNoteDetail = (note) => {
     // TODO: Implement NoteDetail screen
-    Alert.alert(
-      'Chi tiết ghi chú',
-      `Tính năng xem chi tiết ghi chú "${note.title}" sẽ sớm được hoàn thiện!\n\nBạn có thể xem danh sách ghi chú ngay tại màn hình này.`,
-      [{ text: 'Đã hiểu' }]
-    );
+    navigation.navigate('NoteDetail', {
+      note
+    });
   };
 
   const navigateToNotesList = (type, category) => {
@@ -244,10 +243,9 @@ const NotesScreen = ({ navigation }) => {
         <Text style={styles.noteContent} numberOfLines={2}>
           {note.content || 'Không có nội dung'}
         </Text>
-        
-        <Text style={styles.noteDate}>
+          <Text style={styles.noteDate}>
           {note.updatedAt ? 
-            new Date(note.updatedAt.seconds * 1000).toLocaleDateString('vi-VN') :
+            formatDateString(note.updatedAt, 'default', 'vi-VN') :
             'Ngày không xác định'
           }
         </Text>

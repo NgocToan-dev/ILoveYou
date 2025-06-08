@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuthContext } from '../context/AuthContext';
 import { LoveBackground, LoveButton, LoadingIndicator } from '../components';
+import { formatDateString } from '../utils/dateUtils';
 import {
   createCoupleInvitation,
   getCoupleInvitationByCode,
@@ -255,9 +256,8 @@ const CoupleConnectionScreen = ({ navigation }) => {
                 <Text style={styles.partnerName}>
                   {coupleData.user1.id === user.uid ? coupleData.user2.name : coupleData.user1.name}
                 </Text>
-                
-                <Text style={styles.connectionDate}>
-                  Kết nối từ: {new Date(coupleData.createdAt?.seconds * 1000).toLocaleDateString('vi-VN')}
+                  <Text style={styles.connectionDate}>
+                  Kết nối từ: {formatDateString(coupleData.createdAt, 'default', 'vi-VN')}
                 </Text>
               </View>
 
@@ -313,12 +313,11 @@ const CoupleConnectionScreen = ({ navigation }) => {
             {pendingInvitations.map((invitation) => (
               <View key={invitation.id} style={styles.invitationCard}>
                 <View style={styles.invitationInfo}>
-                  <Text style={styles.invitationCode}>Mã: {invitation.code}</Text>
-                  <Text style={styles.invitationDate}>
-                    Tạo: {new Date(invitation.createdAt?.seconds * 1000).toLocaleDateString('vi-VN')}
+                  <Text style={styles.invitationCode}>Mã: {invitation.code}</Text>                  <Text style={styles.invitationDate}>
+                    Tạo: {formatDateString(invitation.createdAt, 'default', 'vi-VN')}
                   </Text>
                   <Text style={styles.invitationExpiry}>
-                    Hết hạn: {new Date(invitation.expiresAt).toLocaleDateString('vi-VN')}
+                    Hết hạn: {formatDateString(invitation.expiresAt, 'default', 'vi-VN')}
                   </Text>
                 </View>
                 

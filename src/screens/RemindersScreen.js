@@ -23,10 +23,10 @@ import {
   uncompleteReminder,
   deleteReminder,
   getPriorityColor,
-  getPriorityName,
-  formatDueDate
+  getPriorityName
 } from '../services/firebase/reminders';
 import { getUserProfile } from '../services/firebase/firestore';
+import { formatDateString, toDate } from '../utils/dateUtils';
 
 const RemindersScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -162,21 +162,16 @@ const RemindersScreen = ({ navigation }) => {
   };
 
   const navigateToCreateReminder = (type) => {
-    // TODO: Implement CreateReminder screen
-    Alert.alert(
-      'Tính năng sắp ra mắt! ⏰',
-      `Chức năng tạo nhắc nhở ${type === 'couple' ? 'cặp đôi' : 'cá nhân'} sẽ sớm được cập nhật!\n\nHiện tại bạn có thể xem giao diện chính của ứng dụng.`,
-      [{ text: 'Đã hiểu' }]
-    );
+    navigation.navigate('CreateReminder', {
+      type,
+      coupleId: userProfile?.coupleId
+    });
   };
 
   const navigateToReminderDetail = (reminder) => {
-    // TODO: Implement ReminderDetail screen
-    Alert.alert(
-      'Chi tiết nhắc nhở',
-      `Tính năng xem chi tiết nhắc nhở "${reminder.title}" sẽ sớm được hoàn thiện!\n\nBạn có thể đánh dấu hoàn thành/chưa hoàn thành ngay tại màn hình này.`,
-      [{ text: 'Đã hiểu' }]
-    );
+    navigation.navigate('ReminderDetail', {
+      reminder
+    });
   };
 
   const renderStatsCard = () => {
@@ -218,7 +213,17 @@ const RemindersScreen = ({ navigation }) => {
 
   const renderReminderCard = (reminder) => {
     const priorityColor = getPriorityColor(reminder.priority);
-    const isOverdue = reminder.dueDate && reminder.dueDate.toDate() < new Date() && !reminder.completed;
+    
+        let isOverdue = false;
+    if (reminder.dueDate && !reminder.completed) {
+      try {
+        const dueDate = toDate(reminder.dueDate);
+        isOverdue = dueDate && dueDate < new Date();
+      } catch (error) {
+        console.error('Error checking if reminder is overdue:', error);
+        isOverdue = false;
+      }
+    }
 
     return (
       <TouchableOpacity
@@ -268,7 +273,7 @@ const RemindersScreen = ({ navigation }) => {
               styles.dueDateText,
               isOverdue && styles.overdueText
             ]}>
-              {formatDueDate(reminder.dueDate)}
+              {formatDateString(reminder.dueDate, 'due', 'vi-VN')}
             </Text>
             
             <TouchableOpacity

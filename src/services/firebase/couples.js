@@ -12,6 +12,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from './config';
+import { toDate } from '../../utils/dateUtils.js';
 
 // Generate a unique 6-digit couple invitation code
 export const generateCoupleCode = () => {
@@ -65,16 +66,14 @@ export const getCoupleInvitationByCode = async (code) => {
     
     if (querySnapshot.empty) {
       return null;
-    }
-
-    const doc = querySnapshot.docs[0];
+    }    const doc = querySnapshot.docs[0];
     const data = doc.data();
     
     // Check if invitation is expired
     const now = new Date();
-    const expiresAt = data.expiresAt.toDate();
+    const expiresAt = toDate(data.expiresAt);
     
-    if (now > expiresAt) {
+    if (expiresAt && now > expiresAt) {
       // Mark as expired
       await updateDoc(doc.ref, { status: 'expired' });
       return null;
@@ -243,16 +242,14 @@ export const getUserPendingInvitations = async (userId) => {
     );
 
     const querySnapshot = await getDocs(q);
-    const invitations = [];
-
-    querySnapshot.forEach((doc) => {
+    const invitations = [];    querySnapshot.forEach((doc) => {
       const data = doc.data();
       
       // Check if expired
       const now = new Date();
-      const expiresAt = data.expiresAt.toDate();
+      const expiresAt = toDate(data.expiresAt);
       
-      if (now <= expiresAt) {
+      if (expiresAt && now <= expiresAt) {
         invitations.push({
           id: doc.id,
           ...data

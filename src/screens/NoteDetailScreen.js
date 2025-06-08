@@ -17,6 +17,8 @@ import {
   getCategoryDisplayInfo,
   NOTE_TYPES
 } from '../services/firebase/notes';
+import { Note } from '../models';
+import { formatDateString } from '../utils/dateUtils';
 
 const NoteDetailScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -54,11 +56,9 @@ const NoteDetailScreen = ({ navigation, route }) => {
   };
 
   const handleEditNote = () => {
-    Alert.alert(
-      'Chỉnh sửa ghi chú',
-      'Tính năng chỉnh sửa ghi chú sẽ sớm được cập nhật!',
-      [{ text: 'Đã hiểu' }]
-    );
+    navigation.navigate('EditNote', {
+      note
+    });
   };
 
   const handleShareNote = async () => {
@@ -91,11 +91,18 @@ const NoteDetailScreen = ({ navigation, route }) => {
     );
   }
 
-  const categoryInfo = getCategoryDisplayInfo(note.category);
-  const createdDate = note.createdAt?.toDate();
-  const updatedDate = note.updatedAt?.toDate();
-  const displayDate = updatedDate > createdDate ? updatedDate : createdDate;
-  const isEdited = updatedDate && updatedDate.getTime() > createdDate?.getTime();
+  // Use Note model for safe data access
+  const noteModel = new Note(note);
+  const categoryInfo = getCategoryDisplayInfo(noteModel.category);
+  
+  // Safe date handling using model methods
+  const createdDateString = noteModel.getFormattedCreatedDate();
+  const updatedDateString = noteModel.getFormattedUpdatedDate();
+  const isEdited = noteModel.wasEdited();
+    // Get formatted dates for display using the new formatDateString utility
+  const displayDate = formatDateString(noteModel.updatedAt || noteModel.createdAt, 'medium', 'vi-VN') || 'Không xác định';
+  const displayTime = formatDateString(noteModel.updatedAt || noteModel.createdAt, 'time', 'vi-VN') || '';
+  const relativeTime = formatDateString(noteModel.updatedAt || noteModel.createdAt, 'relative', 'vi-VN') || '';
 
   return (
     <LoveBackground>
@@ -160,25 +167,24 @@ const NoteDetailScreen = ({ navigation, route }) => {
           {/* Note Content */}
           <View style={styles.noteCard}>
             {/* Title */}
-            <Text style={styles.noteTitle}>{note.title}</Text>
+            <Text style={styles.noteTitle}>{noteModel.title || 'Không có tiêu đề'}</Text>
             
             {/* Meta Info */}
             <View style={styles.metaInfo}>
               <View style={styles.metaItem}>
-                <Ionicons 
-                  name={note.type === NOTE_TYPES.SHARED ? 'people' : 'person'} 
-                  size={16} 
-                  color="#8E24AA" 
+                <Ionicons
+                  name={noteModel.isShared() ? 'people' : 'person'}
+                  size={16}
+                  color="#8E24AA"
                 />
                 <Text style={styles.metaText}>
-                  {note.type === NOTE_TYPES.SHARED ? 'Ghi chú chia sẻ' : 'Ghi chú riêng tư'}
+                  {noteModel.isShared() ? 'Ghi chú chia sẻ' : 'Ghi chú riêng tư'}
                 </Text>
               </View>
-              
-              <View style={styles.metaItem}>
+                <View style={styles.metaItem}>
                 <Ionicons name="calendar-outline" size={16} color="#8E24AA" />
                 <Text style={styles.metaText}>
-                  {displayDate?.toLocaleDateString('vi-VN')} {displayDate?.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                  {displayDate} {displayTime && `${displayTime}`}
                 </Text>
               </View>
               
@@ -194,7 +200,7 @@ const NoteDetailScreen = ({ navigation, route }) => {
             
             {/* Content */}
             <View style={styles.contentSection}>
-              <Text style={styles.noteContent}>{note.content}</Text>
+              <Text style={styles.noteContent}>{noteModel.content || 'Không có nội dung'}</Text>
             </View>
           </View>
 

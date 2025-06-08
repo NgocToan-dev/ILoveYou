@@ -7,6 +7,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { db } from './config';
+import { toDate } from '../../utils/dateUtils.js';
 
 // Initialize or get love days data for a couple
 export const initializeLoveDays = async (coupleId, startDate) => {
@@ -33,14 +34,14 @@ export const getLoveDays = async (coupleId) => {
   try {
     const loveDaysRef = doc(db, 'loveDays', coupleId);
     const docSnap = await getDoc(loveDaysRef);
-    
-    if (docSnap.exists()) {
+      if (docSnap.exists()) {
       const data = docSnap.data();
+      const startDate = toDate(data.startDate);
       return {
         success: true,
         data: {
           ...data,
-          daysTogether: calculateDaysTogether(data.startDate.toDate())
+          daysTogether: startDate ? calculateDaysTogether(startDate) : 0
         }
       };
     } else {
@@ -72,15 +73,15 @@ export const updateLoveDaysStartDate = async (coupleId, newStartDate) => {
 // Subscribe to love days updates
 export const subscribeToLoveDays = (coupleId, callback) => {
   const loveDaysRef = doc(db, 'loveDays', coupleId);
-  
-  return onSnapshot(loveDaysRef, (doc) => {
+    return onSnapshot(loveDaysRef, (doc) => {
     if (doc.exists()) {
       const data = doc.data();
+      const startDate = toDate(data.startDate);
       const loveDaysData = {
         ...data,
-        daysTogether: calculateDaysTogether(data.startDate.toDate()),
-        monthsTogether: calculateMonthsTogether(data.startDate.toDate()),
-        yearsTogether: calculateYearsTogether(data.startDate.toDate())
+        daysTogether: startDate ? calculateDaysTogether(startDate) : 0,
+        monthsTogether: startDate ? calculateMonthsTogether(startDate) : 0,
+        yearsTogether: startDate ? calculateYearsTogether(startDate) : 0
       };
       callback(loveDaysData);
     } else {

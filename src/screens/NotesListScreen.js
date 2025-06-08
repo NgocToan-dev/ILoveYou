@@ -19,6 +19,7 @@ import {
   deleteNote,
   NOTE_TYPES
 } from '../services/firebase/notes';
+import { formatDateString } from '../utils/dateUtils';
 import { getUserProfile } from '../services/firebase/firestore';
 
 const NotesListScreen = ({ navigation, route }) => {
@@ -108,11 +109,8 @@ const NotesListScreen = ({ navigation, route }) => {
       coupleId: userProfile?.coupleId
     });
   };
-
   const renderNoteCard = (note) => {
-    const createdDate = note.createdAt?.toDate();
-    const updatedDate = note.updatedAt?.toDate();
-    const displayDate = updatedDate > createdDate ? updatedDate : createdDate;
+    const displayDate = formatDateString(note.updatedAt || note.createdAt, 'smart', 'vi-VN') || 'Không xác định';
 
     return (
       <View key={note.id} style={styles.noteCard}>
@@ -120,9 +118,8 @@ const NotesListScreen = ({ navigation, route }) => {
           <View style={styles.noteInfo}>
             <Text style={styles.noteTitle} numberOfLines={2}>
               {note.title}
-            </Text>
-            <Text style={styles.noteDate}>
-              {displayDate?.toLocaleDateString('vi-VN')}
+            </Text>            <Text style={styles.noteDate}>
+              {displayDate}
             </Text>
           </View>
           

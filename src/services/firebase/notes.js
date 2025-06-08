@@ -13,6 +13,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from './config';
+import { Note, notesFromQuerySnapshot } from '../../models';
 
 // Note categories
 export const NOTE_CATEGORIES = {
@@ -31,27 +32,49 @@ export const NOTE_TYPES = {
 // Create a new note
 export const createNote = async (noteData) => {
   try {
-    const note = {
+    // Create Note model instance with defaults
+    const noteModel = new Note({
       ...noteData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    };
+    });
 
-    const docRef = await addDoc(collection(db, 'notes'), note);
+    // Validate note
+    if (!noteModel.isValid()) {
+      return {
+        success: false,
+        error: 'Invalid note data: title and content are required'
+      };
+    }
+
+    const docRef = await addDoc(collection(db, 'notes'), noteModel.toFirestore());
     
     return {
+      success: true,
       id: docRef.id,
-      ...note
+      ...noteModel.toFirestore()
     };
   } catch (error) {
     console.error('Error creating note:', error);
-    throw error;
+    return {
+      success: false,
+      error: error.message
+    };
   }
 };
 
 // Update an existing note
 export const updateNote = async (noteId, updateData) => {
   try {
+    // Basic validation using Note model
+    if (updateData.title !== undefined && !updateData.title.trim()) {
+      throw new Error('Title cannot be empty');
+    }
+    
+    if (updateData.content !== undefined && !updateData.content.trim()) {
+      throw new Error('Content cannot be empty');
+    }
+
     const noteRef = doc(db, 'notes', noteId);
     await updateDoc(noteRef, {
       ...updateData,
@@ -240,6 +263,74 @@ export const subscribeToCoupleSharedNotes = (coupleId, category, callback) => {
   });
 };
 
+// Subscribe to user's notes by category
+export const subscribeToUserNotesByCategory = (userId, category, callback) => {
+  let q = query(
+    collection(db, 'notes'),
+    where('userId', '==', userId),
+    where('type', '==', NOTE_TYPES.PRIVATE),
+    orderBy('updatedAt', 'desc')
+  );
+
+  if (category) {
+    q = query(
+      collection(db, 'notes'),
+      where('userId', '==', userId),
+      where('type', '==', NOTE_TYPES.PRIVATE),
+      where('category', '==', category),
+      orderBy('updatedAt', 'desc')
+    );
+  }
+
+  return onSnapshot(q, (querySnapshot) => {
+    const notes = [];
+    querySnapshot.forEach((doc) => {
+      notes.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    callback(notes);
+  }, (error) => {
+    console.error('Error in user notes by category subscription:', error);
+    callback([]);
+  });
+};
+
+// Subscribe to couple's notes by category
+export const subscribeToCoupleNotesByCategory = (coupleId, category, callback) => {
+  let q = query(
+    collection(db, 'notes'),
+    where('coupleId', '==', coupleId),
+    where('type', '==', NOTE_TYPES.SHARED),
+    orderBy('updatedAt', 'desc')
+  );
+
+  if (category) {
+    q = query(
+      collection(db, 'notes'),
+      where('coupleId', '==', coupleId),
+      where('type', '==', NOTE_TYPES.SHARED),
+      where('category', '==', category),
+      orderBy('updatedAt', 'desc')
+    );
+  }
+
+  return onSnapshot(q, (querySnapshot) => {
+    const notes = [];
+    querySnapshot.forEach((doc) => {
+      notes.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    callback(notes);
+  }, (error) => {
+    console.error('Error in couple notes by category subscription:', error);
+    callback([]);
+  });
+};
+
 // Get notes count by category for user
 export const getUserNotesCountByCategory = async (userId) => {
   try {
@@ -329,24 +420,28 @@ export const getCategoryDisplayInfo = (category) => {
     [NOTE_CATEGORIES.LOVE_LETTERS]: {
       name: 'Thư tình',
       icon: 'mail',
+      emoji: '💌',
       color: '#E91E63',
       description: 'Những lời yêu thương ngọt ngào'
     },
     [NOTE_CATEGORIES.MEMORIES]: {
       name: 'Kỷ niệm',
       icon: 'camera',
+      emoji: '📸',
       color: '#8E24AA',
       description: 'Lưu giữ những khoảnh khắc đáng nhớ'
     },
     [NOTE_CATEGORIES.DREAMS]: {
       name: 'Ước mơ',
       icon: 'star',
+      emoji: '⭐',
       color: '#FF6F00',
       description: 'Những giấc mơ và kế hoạch tương lai'
     },
     [NOTE_CATEGORIES.GRATITUDE]: {
       name: 'Biết ơn',
       icon: 'heart',
+      emoji: '🙏',
       color: '#4CAF50',
       description: 'Những điều biết ơn và trân trọng'
     }

@@ -30,44 +30,6 @@ export const LOVE_EMOJIS = {
   hundred: '💯',
 };
 
-// Date formatting utilities
-export const formatDate = (date) => {
-  if (!date) return '';
-  
-  const now = new Date();
-  const inputDate = new Date(date);
-  const diffTime = Math.abs(now - inputDate);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays <= 7) return `${diffDays} days ago`;
-  
-  return inputDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-};
-
-export const formatRelativeTime = (date) => {
-  if (!date) return '';
-  
-  const now = new Date();
-  const inputDate = new Date(date);
-  const diffTime = now - inputDate;
-  const diffMinutes = Math.floor(diffTime / (1000 * 60));
-  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffMinutes < 1) return 'Just now';
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  
-  return formatDate(date);
-};
-
 // Validation helpers
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -240,8 +202,6 @@ export const FEATURES = {
 export default {
   LOVE_COLORS,
   LOVE_EMOJIS,
-  formatDate,
-  formatRelativeTime,
   validateEmail,
   validatePassword,
   validateDisplayName,

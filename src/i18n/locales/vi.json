@@ -1,10 +1,10 @@
 {
   "auth": {
     "login": {
-      "title": "Chào mừng em yêu trở lại! 💕",
+      "title": "Yêu lắm đấy! 💕",
       "subtitle": "Đăng nhập để tiếp tục câu chuyện tình yêu của chúng ta",
-      "emailPlaceholder": "Nhập email của em",
-      "passwordPlaceholder": "Nhập mật khẩu của em",
+      "emailPlaceholder": "Nhập email",
+      "passwordPlaceholder": "Nhập mật khẩu",
       "loginButton": "Đăng nhập với tình yêu 💖",
       "createAccountButton": "Tạo tài khoản mới",
       "loadingMessage": "Đang đăng nhập với tình yêu...",

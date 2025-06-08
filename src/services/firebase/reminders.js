@@ -13,6 +13,32 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from './config';
+import { Reminder, remindersFromQuerySnapshot } from '../../models';
+import { formatDateString, toDate } from '../../utils/dateUtils';
+
+// Helper function to safely compare reminder dates
+const isReminderOverdue = (reminder, referenceDate = new Date()) => {
+  if (!reminder.dueDate) return false;
+  const dueDate = toDate(reminder.dueDate);
+  return dueDate ? dueDate < referenceDate : false;
+};
+
+const isReminderUpcoming = (reminder, startDate = new Date(), endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) => {
+  if (!reminder.dueDate) return false;
+  const dueDate = toDate(reminder.dueDate);
+  return dueDate ? (dueDate >= startDate && dueDate <= endDate) : false;
+};
+
+const compareReminderDates = (reminderA, reminderB) => {
+  const dateA = toDate(reminderA.dueDate);
+  const dateB = toDate(reminderB.dueDate);
+  
+  if (!dateA && !dateB) return 0;
+  if (!dateA) return 1;
+  if (!dateB) return -1;
+  
+  return dateA - dateB;
+};
 
 // Reminder types
 export const REMINDER_TYPES = {
@@ -24,7 +50,18 @@ export const REMINDER_TYPES = {
 export const REMINDER_PRIORITIES = {
   LOW: 'low',
   MEDIUM: 'medium',
-  HIGH: 'high'
+  HIGH: 'high',
+  URGENT: 'urgent'
+};
+
+// Reminder categories
+export const REMINDER_CATEGORIES = {
+  SPECIAL_OCCASIONS: 'special_occasions',
+  DATES: 'dates',
+  GIFTS: 'gifts',
+  HEALTH_WELLNESS: 'health_wellness',
+  PERSONAL_GROWTH: 'personal_growth',
+  OTHER: 'other'
 };
 
 // Recurring types
@@ -39,28 +76,50 @@ export const RECURRING_TYPES = {
 // Create a new reminder
 export const createReminder = async (reminderData) => {
   try {
-    const reminder = {
+    // Create Reminder model instance with defaults
+    const reminderModel = new Reminder({
       ...reminderData,
       completed: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    };
+    });
 
-    const docRef = await addDoc(collection(db, 'reminders'), reminder);
+    // Validate reminder
+    if (!reminderModel.isValid()) {
+      return {
+        success: false,
+        error: 'Invalid reminder data: title and due date are required'
+      };
+    }
+
+    const docRef = await addDoc(collection(db, 'reminders'), reminderModel.toFirestore());
     
     return {
+      success: true,
       id: docRef.id,
-      ...reminder
+      ...reminderModel.toFirestore()
     };
   } catch (error) {
     console.error('Error creating reminder:', error);
-    throw error;
+    return {
+      success: false,
+      error: error.message
+    };
   }
 };
 
 // Update an existing reminder
 export const updateReminder = async (reminderId, updateData) => {
   try {
+    // Basic validation using Reminder model
+    if (updateData.title !== undefined && !updateData.title.trim()) {
+      throw new Error('Title cannot be empty');
+    }
+    
+    if (updateData.dueDate !== undefined && !updateData.dueDate) {
+      throw new Error('Due date is required');
+    }
+
     const reminderRef = doc(db, 'reminders', reminderId);
     await updateDoc(reminderRef, {
       ...updateData,
@@ -286,37 +345,26 @@ export const subscribeToCoupleReminders = (coupleId, includeCompleted, callback)
 // Get upcoming reminders (due within next 7 days)
 export const getUpcomingReminders = async (userId, coupleId) => {
   try {
-    const now = new Date();
-    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    
     const reminders = [];
     
     // Get personal reminders
     const personalReminders = await getUserPersonalReminders(userId, false);
-    const upcomingPersonal = personalReminders.filter(reminder => {
-      if (!reminder.dueDate) return false;
-      const dueDate = reminder.dueDate.toDate();
-      return dueDate >= now && dueDate <= nextWeek;
-    });
+    const upcomingPersonal = personalReminders.filter(reminder => 
+      isReminderUpcoming(reminder)
+    );
     reminders.push(...upcomingPersonal);
     
     // Get couple reminders if coupleId exists
     if (coupleId) {
       const coupleReminders = await getCoupleReminders(coupleId, false);
-      const upcomingCouple = coupleReminders.filter(reminder => {
-        if (!reminder.dueDate) return false;
-        const dueDate = reminder.dueDate.toDate();
-        return dueDate >= now && dueDate <= nextWeek;
-      });
+      const upcomingCouple = coupleReminders.filter(reminder => 
+        isReminderUpcoming(reminder)
+      );
       reminders.push(...upcomingCouple);
     }
     
     // Sort by due date
-    reminders.sort((a, b) => {
-      const dateA = a.dueDate.toDate();
-      const dateB = b.dueDate.toDate();
-      return dateA - dateB;
-    });
+    reminders.sort(compareReminderDates);
     
     return reminders;
   } catch (error) {
@@ -331,33 +379,24 @@ export const getOverdueReminders = async (userId, coupleId) => {
     const now = new Date();
     
     const reminders = [];
-    
-    // Get personal reminders
+      // Get personal reminders
     const personalReminders = await getUserPersonalReminders(userId, false);
-    const overduePersonal = personalReminders.filter(reminder => {
-      if (!reminder.dueDate) return false;
-      const dueDate = reminder.dueDate.toDate();
-      return dueDate < now;
-    });
+    const overduePersonal = personalReminders.filter(reminder => 
+      isReminderOverdue(reminder)
+    );
     reminders.push(...overduePersonal);
     
     // Get couple reminders if coupleId exists
     if (coupleId) {
       const coupleReminders = await getCoupleReminders(coupleId, false);
-      const overdueCouple = coupleReminders.filter(reminder => {
-        if (!reminder.dueDate) return false;
-        const dueDate = reminder.dueDate.toDate();
-        return dueDate < now;
-      });
+      const overdueCouple = coupleReminders.filter(reminder => 
+        isReminderOverdue(reminder)
+      );
       reminders.push(...overdueCouple);
     }
     
     // Sort by due date (oldest first)
-    reminders.sort((a, b) => {
-      const dateA = a.dueDate.toDate();
-      const dateB = b.dueDate.toDate();
-      return dateA - dateB;
-    });
+    reminders.sort(compareReminderDates);
     
     return reminders;
   } catch (error) {
@@ -390,9 +429,8 @@ export const getRemindersStats = async (userId, coupleId) => {
     const allPersonal = await getUserPersonalReminders(userId, true);
     stats.personal.total = allPersonal.length;
     stats.personal.completed = allPersonal.filter(r => r.completed).length;
-    stats.personal.pending = allPersonal.filter(r => !r.completed).length;
-    stats.personal.overdue = allPersonal.filter(r => 
-      !r.completed && r.dueDate && r.dueDate.toDate() < now
+    stats.personal.pending = allPersonal.filter(r => !r.completed).length;    stats.personal.overdue = allPersonal.filter(r => 
+      !r.completed && isReminderOverdue(r)
     ).length;
 
     // Get couple reminders stats if coupleId exists
@@ -400,9 +438,8 @@ export const getRemindersStats = async (userId, coupleId) => {
       const allCouple = await getCoupleReminders(coupleId, true);
       stats.couple.total = allCouple.length;
       stats.couple.completed = allCouple.filter(r => r.completed).length;
-      stats.couple.pending = allCouple.filter(r => !r.completed).length;
-      stats.couple.overdue = allCouple.filter(r => 
-        !r.completed && r.dueDate && r.dueDate.toDate() < now
+      stats.couple.pending = allCouple.filter(r => !r.completed).length;      stats.couple.overdue = allCouple.filter(r => 
+        !r.completed && isReminderOverdue(r)
       ).length;
     }
 
@@ -418,7 +455,8 @@ export const getPriorityColor = (priority) => {
   const colors = {
     [REMINDER_PRIORITIES.LOW]: '#4CAF50',
     [REMINDER_PRIORITIES.MEDIUM]: '#FF9800',
-    [REMINDER_PRIORITIES.HIGH]: '#F44336'
+    [REMINDER_PRIORITIES.HIGH]: '#FF5722',
+    [REMINDER_PRIORITIES.URGENT]: '#F44336'
   };
   
   return colors[priority] || colors[REMINDER_PRIORITIES.MEDIUM];
@@ -429,7 +467,8 @@ export const getPriorityName = (priority) => {
   const names = {
     [REMINDER_PRIORITIES.LOW]: 'Thấp',
     [REMINDER_PRIORITIES.MEDIUM]: 'Trung bình',
-    [REMINDER_PRIORITIES.HIGH]: 'Cao'
+    [REMINDER_PRIORITIES.HIGH]: 'Cao',
+    [REMINDER_PRIORITIES.URGENT]: 'Khẩn cấp'
   };
   
   return names[priority] || names[REMINDER_PRIORITIES.MEDIUM];
@@ -448,24 +487,47 @@ export const getRecurringName = (recurring) => {
   return names[recurring] || names[RECURRING_TYPES.NONE];
 };
 
-// Helper function to format due date
-export const formatDueDate = (dueDate) => {
-  if (!dueDate) return 'Không có hạn';
+
+// Helper function to get category display info
+export const getCategoryDisplayInfo = (category) => {
+  const categoryInfo = {
+    [REMINDER_CATEGORIES.SPECIAL_OCCASIONS]: {
+      name: 'Sự kiện đặc biệt',
+      emoji: '🎉',
+      color: '#E91E63',
+      description: 'Sinh nhật, kỷ niệm, lễ tết'
+    },
+    [REMINDER_CATEGORIES.DATES]: {
+      name: 'Hẹn hò',
+      emoji: '💑',
+      color: '#9C27B0',
+      description: 'Date nights, romantic dinners'
+    },
+    [REMINDER_CATEGORIES.GIFTS]: {
+      name: 'Quà tặng',
+      emoji: '🎁',
+      color: '#FF9800',
+      description: 'Mua quà, chuẩn bị surprise'
+    },
+    [REMINDER_CATEGORIES.HEALTH_WELLNESS]: {
+      name: 'Sức khỏe',
+      emoji: '💪',
+      color: '#4CAF50',
+      description: 'Tập gym, khám sức khỏe'
+    },
+    [REMINDER_CATEGORIES.PERSONAL_GROWTH]: {
+      name: 'Phát triển',
+      emoji: '📚',
+      color: '#2196F3',
+      description: 'Học hỏi, rèn luyện kỹ năng'
+    },
+    [REMINDER_CATEGORIES.OTHER]: {
+      name: 'Khác',
+      emoji: '📌',
+      color: '#607D8B',
+      description: 'Các việc khác'
+    }
+  };
   
-  const date = dueDate.toDate ? dueDate.toDate() : new Date(dueDate);
-  const now = new Date();
-  const diffTime = date.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays < 0) {
-    return `Quá hạn ${Math.abs(diffDays)} ngày`;
-  } else if (diffDays === 0) {
-    return 'Hôm nay';
-  } else if (diffDays === 1) {
-    return 'Ngày mai';
-  } else if (diffDays <= 7) {
-    return `${diffDays} ngày nữa`;
-  } else {
-    return date.toLocaleDateString('vi-VN');
-  }
+  return categoryInfo[category] || categoryInfo[REMINDER_CATEGORIES.OTHER];
 };

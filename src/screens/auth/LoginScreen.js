@@ -131,25 +131,19 @@ const LoginScreen = ({ navigation }) => {
                 style={styles.loginButton}
               />
 
-              <View style={styles.divider}>
+              {/* <View style={styles.divider}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>{t('auth.login.or')}</Text>
                 <View style={styles.dividerLine} />
-              </View>
+              </View> */}
 
-              <LoveButton
+              {/* <LoveButton
                 title={t('auth.login.createAccountButton')}
                 onPress={navigateToSignUp}
                 variant="secondary"
                 size="medium"
                 icon="person-add-outline"
-              />
-            </View>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                {t('auth.login.footerText')}
-              </Text>
+              /> */}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

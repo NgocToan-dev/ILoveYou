@@ -15,28 +15,31 @@ import { useTranslation } from 'react-i18next';
 import { useAuthContext } from '../context/AuthContext';
 import { LoveBackground, LoadingIndicator } from '../components';
 import {
-  createNote,
-  NOTE_CATEGORIES,
+  updateNote,
   NOTE_TYPES,
+  NOTE_CATEGORIES,
   getCategoryDisplayInfo
 } from '../services/firebase/notes';
 import { getUserProfile } from '../services/firebase/firestore';
 import { Note } from '../models';
 
-const CreateNoteScreen = ({ navigation, route }) => {
+const EditNoteScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
-  const { type: initialType, category: initialCategory } = route.params || {};
+  const { note } = route.params || {};
   
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
-  // Form state
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [selectedType, setSelectedType] = useState(initialType || NOTE_TYPES.PRIVATE);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory || NOTE_CATEGORIES.LOVE_LETTERS);
+  // Create Note model instance for safe defaults
+  const noteModel = note ? new Note(note) : new Note();
+  
+  // Form state with model defaults
+  const [title, setTitle] = useState(noteModel.title);
+  const [content, setContent] = useState(noteModel.content);
+  const [selectedType, setSelectedType] = useState(noteModel.type);
+  const [selectedCategory, setSelectedCategory] = useState(noteModel.category);
 
   useEffect(() => {
     loadUserProfile();
@@ -57,7 +60,7 @@ const CreateNoteScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleCreateNote = async () => {
+  const handleUpdateNote = async () => {
     if (!title.trim()) {
       Alert.alert('Thiếu tiêu đề', 'Vui lòng nhập tiêu đề cho ghi chú.');
       return;
@@ -71,7 +74,7 @@ const CreateNoteScreen = ({ navigation, route }) => {
     if (selectedType === NOTE_TYPES.SHARED && !userProfile?.coupleId) {
       Alert.alert(
         'Chưa kết nối', 
-        'Bạn cần kết nối với người yêu để tạo ghi chú chia sẻ.',
+        'Bạn cần kết nối với người yêu để chia sẻ ghi chú.',
         [
           { text: 'Hủy' },
           { text: 'Kết nối ngay', onPress: () => navigation.navigate('Couple') }
@@ -80,46 +83,63 @@ const CreateNoteScreen = ({ navigation, route }) => {
       return;
     }
 
+    // Check if changing from private to shared or vice versa
+    const isChangingType = selectedType !== note?.type;
+    
+    if (isChangingType) {
+      const typeChangeMessage = selectedType === NOTE_TYPES.SHARED 
+        ? 'Ghi chú sẽ được chia sẻ với người yêu của bạn.'
+        : 'Ghi chú sẽ chỉ hiển thị cho bạn.';
+        
+      Alert.alert(
+        'Thay đổi quyền riêng tư',
+        `Bạn có chắc chắn muốn thay đổi ghi chú này thành "${selectedType === NOTE_TYPES.SHARED ? 'Chia sẻ' : 'Riêng tư'}"?\n\n${typeChangeMessage}`,
+        [
+          { text: 'Hủy', style: 'cancel' },
+          { text: 'Xác nhận', onPress: () => performUpdate() }
+        ]
+      );
+    } else {
+      performUpdate();
+    }
+  };
+
+  const performUpdate = async () => {
     setSubmitting(true);
     try {
-      // Create Note model instance with validation
-      const noteModel = new Note({
+      // Create updated Note model instance
+      const updatedNoteModel = new Note({
+        ...noteModel.toFirestore(), // Start with existing data
         title: title.trim(),
         content: content.trim(),
         category: selectedCategory,
         type: selectedType,
-        userId: user.uid,
+        // Update coupleId based on new type
         coupleId: selectedType === NOTE_TYPES.SHARED ? userProfile?.coupleId : null,
       });
 
       // Validate using model
-      if (!noteModel.isValid()) {
+      if (!updatedNoteModel.isValid()) {
         Alert.alert('Dữ liệu không hợp lệ', 'Vui lòng kiểm tra lại thông tin ghi chú.');
         return;
       }
 
-      console.log('Creating note with model:', noteModel.toFirestore());
-      const result = await createNote(noteModel.toFirestore());
-      console.log('Create note result:', result);
+      console.log('Updating note with model:', updatedNoteModel.toFirestore());
+      await updateNote(note.id, updatedNoteModel.toFirestore());
       
-      if (result.success) {
-        const categoryInfo = getCategoryDisplayInfo(selectedCategory);
-        Alert.alert(
-          'Tạo thành công! 💕',
-          `Đã tạo ghi chú "${categoryInfo.name}" ${selectedType === NOTE_TYPES.SHARED ? 'chia sẻ' : 'riêng tư'} thành công!`,
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack()
-            }
-          ]
-        );
-      } else {
-        console.error('Create note failed:', result.error);
-        Alert.alert('Lỗi', result.error || 'Không thể tạo ghi chú. Vui lòng thử lại.');
-      }
+      const categoryInfo = getCategoryDisplayInfo(selectedCategory);
+      Alert.alert(
+        'Cập nhật thành công! 💕',
+        `Đã cập nhật ghi chú "${categoryInfo.name}" ${selectedType === NOTE_TYPES.SHARED ? 'chia sẻ' : 'riêng tư'} thành công!`,
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack()
+          }
+        ]
+      );
     } catch (error) {
-      console.error('Error creating note:', error);
+      console.error('Error updating note:', error);
       Alert.alert('Lỗi', `Có lỗi xảy ra: ${error.message || error.toString()}`);
     } finally {
       setSubmitting(false);
@@ -127,12 +147,18 @@ const CreateNoteScreen = ({ navigation, route }) => {
   };
 
   const handleGoBack = () => {
-    if (title.trim() || content.trim()) {
+    const hasChanges = 
+      title !== (note?.title || '') ||
+      content !== (note?.content || '') ||
+      selectedCategory !== (note?.category || NOTE_CATEGORIES.LOVE_LETTERS) ||
+      selectedType !== (note?.type || NOTE_TYPES.PRIVATE);
+
+    if (hasChanges) {
       Alert.alert(
-        'Hủy tạo ghi chú',
-        'Bạn có muốn hủy tạo ghi chú? Nội dung đã nhập sẽ bị mất.',
+        'Hủy chỉnh sửa',
+        'Bạn có muốn hủy chỉnh sửa? Các thay đổi sẽ bị mất.',
         [
-          { text: 'Tiếp tục viết', style: 'cancel' },
+          { text: 'Tiếp tục chỉnh sửa', style: 'cancel' },
           { text: 'Hủy', style: 'destructive', onPress: () => navigation.goBack() }
         ]
       );
@@ -187,6 +213,9 @@ const CreateNoteScreen = ({ navigation, route }) => {
     return (
       <View style={styles.selectorSection}>
         <Text style={styles.selectorTitle}>Quyền riêng tư</Text>
+        <Text style={styles.typeHelperText}>
+          Bạn có thể thay đổi ghi chú từ riêng tư thành chia sẻ với người yêu
+        </Text>
         <View style={styles.typeSelector}>
           <TouchableOpacity
             style={[
@@ -207,6 +236,9 @@ const CreateNoteScreen = ({ navigation, route }) => {
             ]}>
               Riêng tư
             </Text>
+            {selectedType === NOTE_TYPES.PRIVATE && (
+              <Text style={styles.typeDescription}>Chỉ bạn xem được</Text>
+            )}
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -221,7 +253,7 @@ const CreateNoteScreen = ({ navigation, route }) => {
               } else {
                 Alert.alert(
                   'Chưa kết nối',
-                  'Bạn cần kết nối với người yêu để tạo ghi chú chia sẻ.',
+                  'Bạn cần kết nối với người yêu để chia sẻ ghi chú.',
                   [
                     { text: 'Hủy' },
                     { text: 'Kết nối ngay', onPress: () => navigation.navigate('Couple') }
@@ -243,11 +275,43 @@ const CreateNoteScreen = ({ navigation, route }) => {
             ]}>
               Chia sẻ
             </Text>
+            {selectedType === NOTE_TYPES.SHARED && (
+              <Text style={styles.typeDescription}>Cả hai đều xem được</Text>
+            )}
           </TouchableOpacity>
         </View>
+        
+        {/* Type Change Warning */}
+        {selectedType !== note?.type && (
+          <View style={styles.changeWarning}>
+            <Ionicons name="information-circle" size={20} color="#FF9800" />
+            <Text style={styles.changeWarningText}>
+              {selectedType === NOTE_TYPES.SHARED 
+                ? 'Ghi chú sẽ được chia sẻ với người yêu sau khi lưu'
+                : 'Ghi chú sẽ chỉ hiển thị cho bạn sau khi lưu'
+              }
+            </Text>
+          </View>
+        )}
       </View>
     );
   };
+
+  if (!note) {
+    return (
+      <LoveBackground>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Không tìm thấy ghi chú</Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
+      </LoveBackground>
+    );
+  }
 
   if (loading) {
     return (
@@ -261,7 +325,7 @@ const CreateNoteScreen = ({ navigation, route }) => {
 
   return (
     <LoveBackground>
-      <KeyboardAvoidingView
+      <KeyboardAvoidingView 
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
@@ -276,11 +340,11 @@ const CreateNoteScreen = ({ navigation, route }) => {
             <Ionicons name="arrow-back" size={24} color="#C2185B" />
           </TouchableOpacity>
           
-          <Text style={styles.headerTitle}>Tạo ghi chú mới</Text>
+          <Text style={styles.headerTitle}>Chỉnh sửa ghi chú</Text>
           
           <TouchableOpacity
             style={[styles.saveButton, submitting && styles.disabledButton]}
-            onPress={handleCreateNote}
+            onPress={handleUpdateNote}
             disabled={submitting}
             activeOpacity={0.8}
           >
@@ -347,6 +411,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#999',
+    marginBottom: 20,
+  },
+  backButton: {
+    padding: 8,
+  },
+  backButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
@@ -363,9 +441,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  backButton: {
-    padding: 8,
   },
   headerTitle: {
     fontSize: 18,
@@ -402,6 +477,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#C2185B',
     marginBottom: 12,
+  },
+  typeHelperText: {
+    fontSize: 14,
+    color: '#8E24AA',
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -441,10 +522,10 @@ const styles = StyleSheet.create({
   typeSelector: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 12,
   },
   typeButton: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFF',
@@ -467,10 +548,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#8E24AA',
-    marginLeft: 8,
+    marginTop: 4,
   },
   selectedTypeButtonText: {
     color: '#FFF',
+  },
+  typeDescription: {
+    fontSize: 12,
+    color: '#FFF',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  changeWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#FF9800',
+  },
+  changeWarningText: {
+    fontSize: 14,
+    color: '#E65100',
+    marginLeft: 8,
+    flex: 1,
   },
   inputSection: {
     marginBottom: 24,
@@ -518,4 +620,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CreateNoteScreen;
+export default EditNoteScreen;

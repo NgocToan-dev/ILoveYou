@@ -18,6 +18,7 @@ import {
   getNextMilestone,
   formatLoveDuration
 } from '../../services/firebase/loveDays';
+import { formatDateString, toDate } from '../../utils/dateUtils';
 
 const LoveDaysCounter = ({ coupleId, userId, style }) => {
   const [loveDaysData, setLoveDaysData] = useState(null);
@@ -140,10 +141,9 @@ const LoveDaysCounter = ({ coupleId, userId, style }) => {
 
       const result = await initializeLoveDays(coupleId, selectedDate);
       if (result.success) {
-        setShowSetupModal(false);
-        Alert.alert(
+        setShowSetupModal(false);        Alert.alert(
           'Thiết lập thành công! 💕',
-          `Đã thiết lập ngày bắt đầu yêu là ${selectedDate.toLocaleDateString('vi-VN')}`
+          `Đã thiết lập ngày bắt đầu yêu là ${formatDateString(selectedDate, 'short', 'vi-VN')}`
         );
       } else {
         Alert.alert('Lỗi', 'Không thể thiết lập ngày yêu. Vui lòng thử lại.');
@@ -170,10 +170,9 @@ const LoveDaysCounter = ({ coupleId, userId, style }) => {
       );
 
       const result = await updateLoveDaysStartDate(coupleId, newDate);
-      if (result.success) {
-        Alert.alert(
+      if (result.success) {        Alert.alert(
           'Cập nhật thành công! 💕',
-          `Đã cập nhật ngày bắt đầu yêu thành ${newDate.toLocaleDateString('vi-VN')}`
+          `Đã cập nhật ngày bắt đầu yêu thành ${formatDateString(newDate, 'short', 'vi-VN')}`
         );
       } else {
         Alert.alert('Lỗi', 'Không thể cập nhật ngày yêu. Vui lòng thử lại.');
@@ -183,13 +182,14 @@ const LoveDaysCounter = ({ coupleId, userId, style }) => {
       Alert.alert('Lỗi', 'Không thể cập nhật ngày yêu. Vui lòng thử lại.');
     }
   };
-
   const showDateUpdateDialog = () => {
     if (loveDaysData) {
-      const currentDate = loveDaysData.startDate.toDate();
-      setStartDay(currentDate.getDate().toString());
-      setStartMonth((currentDate.getMonth() + 1).toString());
-      setStartYear(currentDate.getFullYear().toString());
+      const currentDate = toDate(loveDaysData.startDate);
+      if (currentDate) {
+        setStartDay(currentDate.getDate().toString());
+        setStartMonth((currentDate.getMonth() + 1).toString());
+        setStartYear(currentDate.getFullYear().toString());
+      }
     }
     
     Alert.alert(
@@ -306,10 +306,9 @@ const LoveDaysCounter = ({ coupleId, userId, style }) => {
           <Text style={styles.counterLabel}>
             {loveDaysData?.daysTogether === 1 ? 'ngày yêu' : 'ngày yêu nhau'}
           </Text>
-          
-          {loveDaysData?.startDate && (
+            {loveDaysData?.startDate && (
             <Text style={styles.startDateText}>
-              Từ {loveDaysData.startDate.toDate().toLocaleDateString('vi-VN')}
+              Từ {formatDateString(loveDaysData.startDate, 'short', 'vi-VN')}
             </Text>
           )}
         </TouchableOpacity>

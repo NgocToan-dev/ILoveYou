@@ -1,6 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
 
 const LoveButton = ({
   title,
@@ -35,58 +36,78 @@ const LoveButton = ({
 
     return baseStyle;
   };
-
   return (
     <TouchableOpacity
-      style={getButtonStyle()}
+      style={[getButtonStyle(), props.style]}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
-      {...props}
+      activeOpacity={0.7}
     >
-      <View style={styles.content}>
-        {loading ? (
-          <Text style={getTextStyle()}>💕</Text>
-        ) : (
-          <>
-            {icon && (              <Ionicons
-                name={icon}
-                size={size === "small" ? 16 : size === "large" ? 24 : 20}
-                color={
-                  variant === "primary"
-                    ? "#FFF"
-                    : variant === "danger"
-                    ? "#FFF"
-                    : variant === "secondary"
-                    ? "#9C0D4A"
-                    : variant === "outline"
-                    ? "#8A0D47"
-                    : "#D81B60"
-                }
-                style={styles.icon}
-              />
+      {variant === 'primary' ? (
+        <LinearGradient
+          colors={disabled || loading ? ['#DDD', '#CCC'] : ['#E91E63', '#AD1457']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.gradientButton, styles[size]]}
+        >
+          <View style={styles.content}>
+            {loading ? (
+              <Text style={getTextStyle()}>💕</Text>
+            ) : (
+              <>
+                {icon && (
+                  <Ionicons
+                    name={icon}
+                    size={size === "small" ? 16 : size === "large" ? 24 : 20}
+                    color="#FFF"
+                    style={styles.icon}
+                  />
+                )}
+                <Text style={getTextStyle()}>{title}</Text>
+              </>
             )}
-            <Text style={getTextStyle()}>{title}</Text>
-          </>
-        )}
-      </View>
+          </View>
+        </LinearGradient>
+      ) : (
+        <View style={styles.content}>
+          {loading ? (
+            <Text style={getTextStyle()}>💕</Text>
+          ) : (
+            <>
+              {icon && (
+                <Ionicons
+                  name={icon}
+                  size={size === "small" ? 16 : size === "large" ? 24 : 20}
+                  color={
+                    variant === "danger"
+                      ? "#FFF"
+                      : variant === "secondary"
+                      ? "#E91E63"
+                      : variant === "outline"
+                      ? "#AD1457"
+                      : "#E91E63"
+                  }
+                  style={styles.icon}
+                />
+              )}
+              <Text style={getTextStyle()}>{title}</Text>
+            </>
+          )}
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 25,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  gradientButton: {
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#E91E63",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   content: {
     flexDirection: "row",
@@ -95,47 +116,48 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 8,
-  }, // Variants
+  },
+  // Variants
   primary: {
-    backgroundColor: "#E91E63",
     borderWidth: 0,
   },
   secondary: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    backgroundColor: "#FFFFFF",
     borderWidth: 2,
-    borderColor: "#C2185B",
+    borderColor: "#E91E63",
     shadowColor: "#E91E63",
+    shadowOpacity: 0.1,
   },
   outline: {
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
-    borderWidth: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderWidth: 1.5,
     borderColor: "#AD1457",
-    shadowColor: "#C2185B",
+    shadowColor: "#AD1457",
+    shadowOpacity: 0.1,
   },
   danger: {
-    backgroundColor: "#D32F2F",
+    backgroundColor: "#F44336",
     borderWidth: 0,
+    shadowColor: "#F44336",
   },
   // Sizes
   small: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 36,
+    paddingVertical: 10,
+    minHeight: 40,
   },
   medium: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    minHeight: 48,
+    paddingVertical: 14,
+    minHeight: 50,
   },
   large: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    minHeight: 56,
+    paddingVertical: 18,
+    minHeight: 58,
   },
   // Text styles
   text: {
     fontWeight: "600",
     textAlign: "center",
+    letterSpacing: 0.5,
   },
   smallText: {
     fontSize: 14,
@@ -145,28 +167,37 @@ const styles = StyleSheet.create({
   },
   largeText: {
     fontSize: 18,
+    fontWeight: "700",
   },
   primaryText: {
-    color: "#FFF",
+    color: "#FFFFFF",
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
   secondaryText: {
-    color: "#9C0D4A",
+    color: "#E91E63",
     fontWeight: "700",
   },
   outlineText: {
-    color: "#8A0D47",
-    fontWeight: "700",
+    color: "#AD1457",
+    fontWeight: "600",
   },
   dangerText: {
-    color: "#FFF",
+    color: "#FFFFFF",
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  // Disabled state  disabled: {
-    backgroundColor: "#DDD",
-    borderColor: "#DDD",
+  // Disabled state
+  disabled: {
+    backgroundColor: "#E0E0E0",
+    borderColor: "#E0E0E0",
     shadowOpacity: 0,
     elevation: 0,
   },
   disabledText: {
-    color: "#777",
+    color: "#9E9E9E",
   },
 });
 

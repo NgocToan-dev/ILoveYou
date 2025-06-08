@@ -16,9 +16,13 @@ import {
   CoupleConnectionScreen,
   NotesScreen,
   CreateNoteScreen,
+  EditNoteScreen,
   NotesListScreen,
   NoteDetailScreen,
   RemindersScreen,
+  CreateReminderScreen,
+  ReminderDetailScreen,
+  EditReminderScreen,
   UserProfileScreen,
   UserListScreen,
   UserEditScreen,
@@ -153,6 +157,11 @@ const NotesStack = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="EditNote"
+        component={EditNoteScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="NotesList"
         component={NotesListScreen}
         options={{ headerShown: false }}
@@ -191,6 +200,21 @@ const RemindersStack = () => {
       <Stack.Screen
         name="RemindersMain"
         component={RemindersScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CreateReminder"
+        component={CreateReminderScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ReminderDetail"
+        component={ReminderDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EditReminder"
+        component={EditReminderScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
