@@ -17,7 +17,10 @@ import {
 } from "../../components";
 import { updateProfile } from "firebase/auth";
 import { getCurrentUser } from "../../services/firebase/auth";
-import { updateUser, getOrCreateUser } from "../../services/firebase/firestore";
+import {
+  updateUserWithSync,
+  getOrCreateUser,
+} from "../../services/firebase/firestore";
 import { Timestamp } from "firebase/firestore";
 
 const UserEditScreen = ({ navigation, route }) => {
@@ -128,12 +131,12 @@ const UserEditScreen = ({ navigation, route }) => {
           ]
         );
         return;
-      }
-
-      // Update Firebase Auth profile
+      } // Update Firebase Auth profile
       await updateProfile(currentUser, {
         displayName: formData.displayName.trim(),
-      }); // Update Firestore user document
+      });
+
+      // Update Firestore user document with sync to related collections
       const userData = {
         displayName: formData.displayName.trim(),
         bio: formData.bio.trim(),
@@ -141,14 +144,14 @@ const UserEditScreen = ({ navigation, route }) => {
         updatedAt: Timestamp.now(),
       };
 
-      const { error } = await updateUser(currentUser.uid, userData);
+      const { error } = await updateUserWithSync(currentUser.uid, userData);
 
       if (error) {
         Alert.alert("Error", error);
       } else {
         Alert.alert(
           "Profile Updated! 💕",
-          "Your lovely profile has been updated successfully.",
+          "Your lovely profile has been updated successfully and synced across all your data.",
           [
             {
               text: "OK",
@@ -310,8 +313,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontStyle: "italic",
   },
-  inputSection: {
-  },
+  inputSection: {},
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",

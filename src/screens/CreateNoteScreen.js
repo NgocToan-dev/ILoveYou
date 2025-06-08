@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,34 +9,38 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import { useAuthContext } from '../context/AuthContext';
-import { LoveBackground, LoadingIndicator } from '../components';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { useAuthContext } from "../context/AuthContext";
+import { LoveBackground, LoadingIndicator } from "../components";
 import {
   createNote,
   NOTE_CATEGORIES,
   NOTE_TYPES,
-  getCategoryDisplayInfo
-} from '../services/firebase/notes';
-import { getUserProfile } from '../services/firebase/firestore';
-import { Note } from '../models';
+  getCategoryDisplayInfo,
+} from "../services/firebase/notes";
+import { getUserProfile } from "../services/firebase/firestore";
+import { Note } from "../models";
 
 const CreateNoteScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const { type: initialType, category: initialCategory } = route.params || {};
-  
+
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Form state
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [selectedType, setSelectedType] = useState(initialType || NOTE_TYPES.PRIVATE);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory || NOTE_CATEGORIES.LOVE_LETTERS);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [selectedType, setSelectedType] = useState(
+    initialType || NOTE_TYPES.PRIVATE
+  );
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialCategory || NOTE_CATEGORIES.LOVE_LETTERS
+  );
 
   useEffect(() => {
     loadUserProfile();
@@ -50,8 +54,8 @@ const CreateNoteScreen = ({ navigation, route }) => {
       const profile = await getUserProfile(user.uid);
       setUserProfile(profile);
     } catch (error) {
-      console.error('Error loading user profile:', error);
-      Alert.alert('Lỗi', 'Không thể tải thông tin người dùng.');
+      console.error("Error loading user profile:", error);
+      Alert.alert("Lỗi", "Không thể tải thông tin người dùng.");
     } finally {
       setLoading(false);
     }
@@ -59,22 +63,25 @@ const CreateNoteScreen = ({ navigation, route }) => {
 
   const handleCreateNote = async () => {
     if (!title.trim()) {
-      Alert.alert('Thiếu tiêu đề', 'Vui lòng nhập tiêu đề cho ghi chú.');
+      Alert.alert("Thiếu tiêu đề", "Vui lòng nhập tiêu đề cho ghi chú.");
       return;
     }
 
     if (!content.trim()) {
-      Alert.alert('Thiếu nội dung', 'Vui lòng nhập nội dung cho ghi chú.');
+      Alert.alert("Thiếu nội dung", "Vui lòng nhập nội dung cho ghi chú.");
       return;
     }
 
     if (selectedType === NOTE_TYPES.SHARED && !userProfile?.coupleId) {
       Alert.alert(
-        'Chưa kết nối', 
-        'Bạn cần kết nối với người yêu để tạo ghi chú chia sẻ.',
+        "Chưa kết nối",
+        "Bạn cần kết nối với người yêu để tạo ghi chú chia sẻ.",
         [
-          { text: 'Hủy' },
-          { text: 'Kết nối ngay', onPress: () => navigation.navigate('Couple') }
+          { text: "Hủy" },
+          {
+            text: "Kết nối ngay",
+            onPress: () => navigation.navigate("Couple"),
+          },
         ]
       );
       return;
@@ -89,38 +96,55 @@ const CreateNoteScreen = ({ navigation, route }) => {
         category: selectedCategory,
         type: selectedType,
         userId: user.uid,
-        coupleId: selectedType === NOTE_TYPES.SHARED ? userProfile?.coupleId : null,
+        coupleId:
+          selectedType === NOTE_TYPES.SHARED ? userProfile?.coupleId : null,
       });
 
       // Validate using model
       if (!noteModel.isValid()) {
-        Alert.alert('Dữ liệu không hợp lệ', 'Vui lòng kiểm tra lại thông tin ghi chú.');
+        Alert.alert(
+          "Dữ liệu không hợp lệ",
+          "Vui lòng kiểm tra lại thông tin ghi chú."
+        );
         return;
       }
 
-      console.log('Creating note with model:', noteModel.toFirestore());
+      console.log("Creating note with model:", noteModel.toFirestore());
+      console.log("User profile coupleId:", userProfile?.coupleId);
+      console.log("Selected type:", selectedType);
+      console.log("Final note data:", {
+        ...noteModel.toFirestore(),
+        userId: user.uid,
+        coupleId:
+          selectedType === NOTE_TYPES.SHARED ? userProfile?.coupleId : null,
+      });
       const result = await createNote(noteModel.toFirestore());
-      console.log('Create note result:', result);
-      
+      console.log("Create note result:", result);
+
       if (result.success) {
         const categoryInfo = getCategoryDisplayInfo(selectedCategory);
         Alert.alert(
-          'Tạo thành công! 💕',
-          `Đã tạo ghi chú "${categoryInfo.name}" ${selectedType === NOTE_TYPES.SHARED ? 'chia sẻ' : 'riêng tư'} thành công!`,
+          "Tạo thành công! 💕",
+          `Đã tạo ghi chú "${categoryInfo.name}" ${
+            selectedType === NOTE_TYPES.SHARED ? "chia sẻ" : "riêng tư"
+          } thành công!`,
           [
             {
-              text: 'OK',
-              onPress: () => navigation.goBack()
-            }
+              text: "OK",
+              onPress: () => navigation.goBack(),
+            },
           ]
         );
       } else {
-        console.error('Create note failed:', result.error);
-        Alert.alert('Lỗi', result.error || 'Không thể tạo ghi chú. Vui lòng thử lại.');
+        console.error("Create note failed:", result.error);
+        Alert.alert(
+          "Lỗi",
+          result.error || "Không thể tạo ghi chú. Vui lòng thử lại."
+        );
       }
     } catch (error) {
-      console.error('Error creating note:', error);
-      Alert.alert('Lỗi', `Có lỗi xảy ra: ${error.message || error.toString()}`);
+      console.error("Error creating note:", error);
+      Alert.alert("Lỗi", `Có lỗi xảy ra: ${error.message || error.toString()}`);
     } finally {
       setSubmitting(false);
     }
@@ -129,11 +153,15 @@ const CreateNoteScreen = ({ navigation, route }) => {
   const handleGoBack = () => {
     if (title.trim() || content.trim()) {
       Alert.alert(
-        'Hủy tạo ghi chú',
-        'Bạn có muốn hủy tạo ghi chú? Nội dung đã nhập sẽ bị mất.',
+        "Hủy tạo ghi chú",
+        "Bạn có muốn hủy tạo ghi chú? Nội dung đã nhập sẽ bị mất.",
         [
-          { text: 'Tiếp tục viết', style: 'cancel' },
-          { text: 'Hủy', style: 'destructive', onPress: () => navigation.goBack() }
+          { text: "Tiếp tục viết", style: "cancel" },
+          {
+            text: "Hủy",
+            style: "destructive",
+            onPress: () => navigation.goBack(),
+          },
         ]
       );
     } else {
@@ -146,7 +174,7 @@ const CreateNoteScreen = ({ navigation, route }) => {
       NOTE_CATEGORIES.LOVE_LETTERS,
       NOTE_CATEGORIES.MEMORIES,
       NOTE_CATEGORIES.DREAMS,
-      NOTE_CATEGORIES.GRATITUDE
+      NOTE_CATEGORIES.GRATITUDE,
     ];
 
     return (
@@ -156,23 +184,25 @@ const CreateNoteScreen = ({ navigation, route }) => {
           {categories.map((category) => {
             const categoryInfo = getCategoryDisplayInfo(category);
             const isSelected = selectedCategory === category;
-            
+
             return (
               <TouchableOpacity
                 key={category}
                 style={[
                   styles.categoryCard,
                   isSelected && styles.selectedCategoryCard,
-                  { borderLeftColor: categoryInfo.color }
+                  { borderLeftColor: categoryInfo.color },
                 ]}
                 onPress={() => setSelectedCategory(category)}
                 activeOpacity={0.8}
               >
                 <Text style={styles.categoryEmoji}>{categoryInfo.emoji}</Text>
-                <Text style={[
-                  styles.categoryName,
-                  isSelected && styles.selectedCategoryName
-                ]}>
+                <Text
+                  style={[
+                    styles.categoryName,
+                    isSelected && styles.selectedCategoryName,
+                  ]}
+                >
                   {categoryInfo.name}
                 </Text>
               </TouchableOpacity>
@@ -191,40 +221,46 @@ const CreateNoteScreen = ({ navigation, route }) => {
           <TouchableOpacity
             style={[
               styles.typeButton,
-              selectedType === NOTE_TYPES.PRIVATE && styles.selectedTypeButton
+              selectedType === NOTE_TYPES.PRIVATE && styles.selectedTypeButton,
             ]}
             onPress={() => setSelectedType(NOTE_TYPES.PRIVATE)}
             activeOpacity={0.8}
           >
-            <Ionicons 
-              name="person" 
-              size={20} 
-              color={selectedType === NOTE_TYPES.PRIVATE ? '#FFF' : '#8E24AA'} 
+            <Ionicons
+              name="person"
+              size={20}
+              color={selectedType === NOTE_TYPES.PRIVATE ? "#FFF" : "#8E24AA"}
             />
-            <Text style={[
-              styles.typeButtonText,
-              selectedType === NOTE_TYPES.PRIVATE && styles.selectedTypeButtonText
-            ]}>
+            <Text
+              style={[
+                styles.typeButtonText,
+                selectedType === NOTE_TYPES.PRIVATE &&
+                  styles.selectedTypeButtonText,
+              ]}
+            >
               Riêng tư
             </Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[
               styles.typeButton,
               selectedType === NOTE_TYPES.SHARED && styles.selectedTypeButton,
-              !userProfile?.coupleId && styles.disabledButton
+              !userProfile?.coupleId && styles.disabledButton,
             ]}
             onPress={() => {
               if (userProfile?.coupleId) {
                 setSelectedType(NOTE_TYPES.SHARED);
               } else {
                 Alert.alert(
-                  'Chưa kết nối',
-                  'Bạn cần kết nối với người yêu để tạo ghi chú chia sẻ.',
+                  "Chưa kết nối",
+                  "Bạn cần kết nối với người yêu để tạo ghi chú chia sẻ.",
                   [
-                    { text: 'Hủy' },
-                    { text: 'Kết nối ngay', onPress: () => navigation.navigate('Couple') }
+                    { text: "Hủy" },
+                    {
+                      text: "Kết nối ngay",
+                      onPress: () => navigation.navigate("Couple"),
+                    },
                   ]
                 );
               }
@@ -232,15 +268,18 @@ const CreateNoteScreen = ({ navigation, route }) => {
             disabled={!userProfile?.coupleId}
             activeOpacity={0.8}
           >
-            <Ionicons 
-              name="people" 
-              size={20} 
-              color={selectedType === NOTE_TYPES.SHARED ? '#FFF' : '#E91E63'} 
+            <Ionicons
+              name="people"
+              size={20}
+              color={selectedType === NOTE_TYPES.SHARED ? "#FFF" : "#E91E63"}
             />
-            <Text style={[
-              styles.typeButtonText,
-              selectedType === NOTE_TYPES.SHARED && styles.selectedTypeButtonText
-            ]}>
+            <Text
+              style={[
+                styles.typeButtonText,
+                selectedType === NOTE_TYPES.SHARED &&
+                  styles.selectedTypeButtonText,
+              ]}
+            >
               Chia sẻ
             </Text>
           </TouchableOpacity>
@@ -263,8 +302,8 @@ const CreateNoteScreen = ({ navigation, route }) => {
     <LoveBackground>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -275,9 +314,9 @@ const CreateNoteScreen = ({ navigation, route }) => {
           >
             <Ionicons name="arrow-back" size={24} color="#C2185B" />
           </TouchableOpacity>
-          
+
           <Text style={styles.headerTitle}>Tạo ghi chú mới</Text>
-          
+
           <TouchableOpacity
             style={[styles.saveButton, submitting && styles.disabledButton]}
             onPress={handleCreateNote}
@@ -345,20 +384,20 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderBottomWidth: 1,
-    borderBottomColor: '#FCE4EC',
-    shadowColor: '#E91E63',
+    borderBottomColor: "#FCE4EC",
+    shadowColor: "#E91E63",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -369,22 +408,22 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#C2185B',
+    fontWeight: "bold",
+    color: "#C2185B",
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
   },
   saveButton: {
-    backgroundColor: '#E91E63',
+    backgroundColor: "#E91E63",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   disabledButton: {
-    backgroundColor: '#CCC',
+    backgroundColor: "#CCC",
     opacity: 0.6,
   },
   content: {
@@ -399,31 +438,31 @@ const styles = StyleSheet.create({
   },
   selectorTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#C2185B',
+    fontWeight: "bold",
+    color: "#C2185B",
     marginBottom: 12,
   },
   categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   categoryCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
-    width: '48%',
+    alignItems: "center",
+    width: "48%",
     borderLeftWidth: 4,
-    shadowColor: '#E91E63',
+    shadowColor: "#E91E63",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   selectedCategoryCard: {
-    backgroundColor: '#FCE4EC',
-    borderColor: '#E91E63',
+    backgroundColor: "#FCE4EC",
+    borderColor: "#E91E63",
   },
   categoryEmoji: {
     fontSize: 24,
@@ -431,80 +470,80 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#8E24AA',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#8E24AA",
+    textAlign: "center",
   },
   selectedCategoryName: {
-    color: '#C2185B',
+    color: "#C2185B",
   },
   typeSelector: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   typeButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF",
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderWidth: 2,
-    borderColor: '#FCE4EC',
-    shadowColor: '#E91E63',
+    borderColor: "#FCE4EC",
+    shadowColor: "#E91E63",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   selectedTypeButton: {
-    backgroundColor: '#E91E63',
-    borderColor: '#E91E63',
+    backgroundColor: "#E91E63",
+    borderColor: "#E91E63",
   },
   typeButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#8E24AA',
+    fontWeight: "600",
+    color: "#8E24AA",
     marginLeft: 8,
   },
   selectedTypeButtonText: {
-    color: '#FFF',
+    color: "#FFF",
   },
   inputSection: {
     marginBottom: 24,
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#C2185B',
+    fontWeight: "bold",
+    color: "#C2185B",
     marginBottom: 8,
   },
   titleInput: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     borderWidth: 1,
-    borderColor: '#FCE4EC',
-    shadowColor: '#E91E63',
+    borderColor: "#FCE4EC",
+    shadowColor: "#E91E63",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   contentInput: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     borderWidth: 1,
-    borderColor: '#FCE4EC',
+    borderColor: "#FCE4EC",
     minHeight: 150,
-    shadowColor: '#E91E63',
+    shadowColor: "#E91E63",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -512,8 +551,8 @@ const styles = StyleSheet.create({
   },
   characterCount: {
     fontSize: 12,
-    color: '#999',
-    textAlign: 'right',
+    color: "#999",
+    textAlign: "right",
     marginTop: 4,
   },
 });

@@ -1,45 +1,39 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView,
-  Alert 
-} from 'react-native';
-import { 
-  LoveButton, 
-  LoadingIndicator, 
+import React, { useState } from "react";
+import { View, Text, StyleSheet, SafeAreaView, Alert } from "react-native";
+import {
+  LoveButton,
+  LoadingIndicator,
   LoveBackground,
-  LoveInput 
-} from '../../components';
-import { deleteUser } from 'firebase/auth';
-import { getCurrentUser, logOut } from '../../services/firebase/auth';
+  LoveInput,
+} from "../../components";
+import { deleteUser } from "firebase/auth";
+import { getCurrentUser, logOut } from "../../services/firebase/auth";
 
 const UserDeleteScreen = ({ navigation }) => {
-  const [confirmationText, setConfirmationText] = useState('');
+  const [confirmationText, setConfirmationText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const currentUser = getCurrentUser();
-  const requiredText = 'DELETE MY ACCOUNT';
+  const requiredText = "DELETE MY ACCOUNT";
 
   const handleDeleteAccount = async () => {
     if (confirmationText.trim() !== requiredText) {
-      setError('Please type the exact confirmation text');
+      setError("Please type the exact confirmation text");
       return;
     }
 
     Alert.alert(
-      '💔 Final Confirmation',
-      'This action cannot be undone. Your account and all your love memories will be permanently deleted.\n\nAre you absolutely sure?',
+      "💔 Final Confirmation",
+      "This action cannot be undone. Your account and all your love memories will be permanently deleted.\n\nAre you absolutely sure?",
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Delete Forever',
-          style: 'destructive',
+          text: "Delete Forever",
+          style: "destructive",
           onPress: performAccountDeletion,
         },
       ]
@@ -48,49 +42,50 @@ const UserDeleteScreen = ({ navigation }) => {
 
   const performAccountDeletion = async () => {
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       if (!currentUser) {
-        throw new Error('No user found');
+        throw new Error("No user found");
       }
 
       // Delete the user account from Firebase Auth
       await deleteUser(currentUser);
-      
+
       // Note: In a production app, you would also want to:
       // 1. Delete user data from Firestore
       // 2. Delete any uploaded files/images
       // 3. Clean up any couple connections
       // 4. Notify the partner if applicable
-      
+
       Alert.alert(
-        'Account Deleted 💔',
-        'Your account has been permanently deleted. We\'re sorry to see you go.',
+        "Account Deleted 💔",
+        "Your account has been permanently deleted. We're sorry to see you go.",
         [
           {
-            text: 'OK',
+            text: "OK",
             onPress: () => {
               // Navigation will be handled by auth state listener
               // But we can also manually navigate to ensure it works
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'Login' }],
+                routes: [{ name: "Login" }],
               });
             },
           },
         ]
       );
     } catch (err) {
-      console.error('Error deleting account:', err);
-      
-      let errorMessage = 'Failed to delete account. Please try again.';
-      
-      if (err.code === 'auth/requires-recent-login') {
-        errorMessage = 'For security reasons, please sign out and sign back in before deleting your account.';
+      console.error("Error deleting account:", err);
+
+      let errorMessage = "Failed to delete account. Please try again.";
+
+      if (err.code === "auth/requires-recent-login") {
+        errorMessage =
+          "For security reasons, please sign out and sign back in before deleting your account.";
       }
-      
-      Alert.alert('Error', errorMessage);
+
+      Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -104,9 +99,9 @@ const UserDeleteScreen = ({ navigation }) => {
     return (
       <LoveBackground variant="secondary">
         <SafeAreaView style={styles.loadingContainer}>
-          <LoadingIndicator 
-            message="Processing account deletion..." 
-            size="large" 
+          <LoadingIndicator
+            message="Processing account deletion..."
+            size="large"
           />
         </SafeAreaView>
       </LoveBackground>
@@ -120,9 +115,7 @@ const UserDeleteScreen = ({ navigation }) => {
           <View style={styles.header}>
             <Text style={styles.warningEmoji}>⚠️💔⚠️</Text>
             <Text style={styles.title}>Delete Account</Text>
-            <Text style={styles.subtitle}>
-              This action cannot be undone
-            </Text>
+            <Text style={styles.subtitle}>This action cannot be undone</Text>
           </View>
 
           <View style={styles.warningContainer}>
@@ -131,10 +124,18 @@ const UserDeleteScreen = ({ navigation }) => {
               Deleting your account will permanently remove:
             </Text>
             <View style={styles.warningList}>
-              <Text style={styles.warningItem}>• Your profile and personal information</Text>
-              <Text style={styles.warningItem}>• All your love messages and memories</Text>
-              <Text style={styles.warningItem}>• Your connection with your partner</Text>
-              <Text style={styles.warningItem}>• All app data and preferences</Text>
+              <Text style={styles.warningItem}>
+                • Your profile and personal information
+              </Text>
+              <Text style={styles.warningItem}>
+                • All your love messages and memories
+              </Text>
+              <Text style={styles.warningItem}>
+                • Your connection with your partner
+              </Text>
+              <Text style={styles.warningItem}>
+                • All app data and preferences
+              </Text>
             </View>
             <Text style={styles.warningFooter}>
               This action is irreversible and cannot be undone.
@@ -145,10 +146,8 @@ const UserDeleteScreen = ({ navigation }) => {
             <Text style={styles.confirmationLabel}>
               To confirm deletion, please type:
             </Text>
-            <Text style={styles.confirmationRequired}>
-              {requiredText}
-            </Text>
-            
+            <Text style={styles.confirmationRequired}>{requiredText}</Text>
+
             <LoveInput
               value={confirmationText}
               onChangeText={setConfirmationText}
@@ -171,7 +170,8 @@ const UserDeleteScreen = ({ navigation }) => {
               disabled={confirmationText.trim() !== requiredText}
               style={[
                 styles.deleteButton,
-                confirmationText.trim() !== requiredText && styles.disabledButton
+                confirmationText.trim() !== requiredText &&
+                  styles.disabledButton,
               ]}
             />
 
@@ -187,7 +187,8 @@ const UserDeleteScreen = ({ navigation }) => {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Need help? Consider reaching out to support before deleting your account.
+              Need help? Consider reaching out to support before deleting your
+              account.
             </Text>
           </View>
         </View>
@@ -207,37 +208,38 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   warningEmoji: {
     fontSize: 48,
     marginBottom: 16,
-  },  title: {
+  },
+  title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#C2185B',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#C2185B",
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6D4C41',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#6D4C41",
+    textAlign: "center",
+    fontStyle: "italic",
   },
   warningContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 16,
     padding: 20,
     marginBottom: 32,
     borderWidth: 2,
-    borderColor: '#FF6B6B',
-    shadowColor: '#FF6B6B',
+    borderColor: "#FF6B6B",
+    shadowColor: "#FF6B6B",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -248,51 +250,51 @@ const styles = StyleSheet.create({
   },
   warningTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FF6B6B',
+    fontWeight: "bold",
+    color: "#FF6B6B",
     marginBottom: 12,
   },
   warningText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     marginBottom: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   warningList: {
     marginBottom: 16,
   },
   warningItem: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 6,
     lineHeight: 20,
   },
   warningFooter: {
     fontSize: 14,
-    color: '#FF6B6B',
-    fontWeight: 'bold',
-    fontStyle: 'italic',
+    color: "#FF6B6B",
+    fontWeight: "bold",
+    fontStyle: "italic",
   },
   confirmationContainer: {
     marginBottom: 32,
   },
   confirmationLabel: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     marginBottom: 8,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   confirmationRequired: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FF6B6B',
-    textAlign: 'center',
-    backgroundColor: '#FFF0F0',
+    fontWeight: "bold",
+    color: "#FF6B6B",
+    textAlign: "center",
+    backgroundColor: "#FFF0F0",
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FFB6B6',
+    borderColor: "#FFB6B6",
   },
   confirmationInput: {
     marginBottom: 0,
@@ -301,21 +303,23 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   deleteButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: "#FF6B6B",
     marginBottom: 16,
   },
   disabledButton: {
     opacity: 0.5,
-  },  cancelButton: {
-    borderColor: '#E91E63',
+  },
+  cancelButton: {
+    borderColor: "#E91E63",
   },
   footer: {
-    alignItems: 'center',
-  },  footerText: {
+    alignItems: "center",
+  },
+  footerText: {
     fontSize: 14,
-    color: '#8D6E63',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#8D6E63",
+    textAlign: "center",
+    fontStyle: "italic",
     lineHeight: 20,
   },
 });

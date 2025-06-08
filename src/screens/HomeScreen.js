@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import { useAuthContext } from '../context/AuthContext';
-import { LoveBackground } from '../components';
-import LoveDaysCounter from '../components/ui/LoveDaysCounter';
-import { getUserProfile } from '../services/firebase/firestore';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { useAuthContext } from "../context/AuthContext";
+import { LoveBackground } from "../components";
+import LoveDaysCounter from "../components/ui/LoveDaysCounter";
+import { getUserProfile } from "../services/firebase/firestore";
 
 const HomeScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -33,7 +33,7 @@ const HomeScreen = ({ navigation }) => {
     try {
       const profile = await getUserProfile(user.uid);
       setUserProfile(profile);
-      
+
       // Get couple data if user is in a couple
       if (profile?.coupleId) {
         // You might want to add a getCoupleData function to your firestore service
@@ -41,17 +41,16 @@ const HomeScreen = ({ navigation }) => {
         setCoupleData({ id: profile.coupleId });
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error("Error loading user data:", error);
       Alert.alert(
-        'Lỗi',
-        'Không thể tải dữ liệu người dùng. Vui lòng thử lại.',
-        [{ text: 'OK' }]
+        "Lỗi",
+        "Không thể tải dữ liệu người dùng. Vui lòng thử lại.",
+        [{ text: "OK" }]
       );
     } finally {
       setLoading(false);
     }
   };
-
   const onRefresh = async () => {
     setRefreshing(true);
     await loadUserData();
@@ -60,17 +59,17 @@ const HomeScreen = ({ navigation }) => {
 
   const navigateToFeature = (feature) => {
     switch (feature) {
-      case 'notes':
-        navigation.navigate('Notes');
+      case "notes":
+        navigation.navigate("Notes");
         break;
-      case 'reminders':
-        navigation.navigate('Reminders');
+      case "reminders":
+        navigation.navigate("Reminders");
         break;
-      case 'couple':
-        navigation.navigate('Couple');
+      case "couple":
+        navigation.navigate("Couple");
         break;
-      case 'profile':
-        navigation.navigate('Profile');
+      case "profile":
+        navigation.navigate("Profile");
         break;
       default:
         break;
@@ -79,8 +78,8 @@ const HomeScreen = ({ navigation }) => {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    const name = userProfile?.displayName || 'em yêu';
-    
+    const name = userProfile?.displayName || "em yêu";
+
     if (hour < 12) {
       return `Chào buổi sáng, ${name}! ☀️`;
     } else if (hour < 18) {
@@ -109,7 +108,7 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#E91E63']}
+            colors={["#E91E63"]}
             tintColor="#E91E63"
           />
         }
@@ -117,9 +116,7 @@ const HomeScreen = ({ navigation }) => {
       >
         {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>
-            {getGreeting()}
-          </Text>
+          <Text style={styles.greeting}>{getGreeting()}</Text>
           <Text style={styles.subtitle}>
             Chào mừng đến với không gian tình yêu của chúng ta 💕
           </Text>
@@ -135,41 +132,38 @@ const HomeScreen = ({ navigation }) => {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           <Text style={styles.sectionTitle}>Truy cập nhanh</Text>
-          
+
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionCard, styles.notesAction]}
-              onPress={() => navigateToFeature('notes')}
+              onPress={() => navigateToFeature("notes")}
               activeOpacity={0.8}
             >
               <Ionicons name="document-text" size={32} color="#8E24AA" />
               <Text style={styles.actionTitle}>Ghi chú</Text>
               <Text style={styles.actionSubtitle}>Kỷ niệm yêu thương</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.actionCard, styles.remindersAction]}
-              onPress={() => navigateToFeature('reminders')}
+              onPress={() => navigateToFeature("reminders")}
               activeOpacity={0.8}
             >
               <Ionicons name="alarm" size={32} color="#FF6F00" />
               <Text style={styles.actionTitle}>Nhắc nhở</Text>
               <Text style={styles.actionSubtitle}>Đừng quên yêu thương</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.actionCard, styles.coupleAction]}
-              onPress={() => navigateToFeature('couple')}
+              onPress={() => navigateToFeature("couple")}
               activeOpacity={0.8}
             >
               <Ionicons name="heart" size={32} color="#E91E63" />
               <Text style={styles.actionTitle}>Kết nối</Text>
               <Text style={styles.actionSubtitle}>Liên kết với người yêu</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.actionCard, styles.profileAction]}
-              onPress={() => navigateToFeature('profile')}
+              onPress={() => navigateToFeature("profile")}
               activeOpacity={0.8}
             >
               <Ionicons name="person" size={32} color="#9C27B0" />
@@ -181,9 +175,15 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Love Quote */}
         <View style={styles.quoteCard}>
-          <Ionicons name="heart" size={24} color="#E91E63" style={styles.quoteIcon} />
+          <Ionicons
+            name="heart"
+            size={24}
+            color="#E91E63"
+            style={styles.quoteIcon}
+          />
           <Text style={styles.quote}>
-            "Tình yêu không phải là nhìn vào mắt nhau, mà là cùng nhau nhìn về một hướng."
+            "Tình yêu không phải là nhìn vào mắt nhau, mà là cùng nhau nhìn về
+            một hướng."
           </Text>
           <Text style={styles.quoteAuthor}>- Antoine de Saint-Exupéry</Text>
         </View>
@@ -202,13 +202,13 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
-    color: '#8E24AA',
+    color: "#8E24AA",
     fontSize: 16,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   header: {
     marginTop: 60,
@@ -216,25 +216,25 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#C2185B',
+    fontWeight: "bold",
+    color: "#C2185B",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#8E24AA',
+    color: "#8E24AA",
     lineHeight: 24,
   },
   peacefulDaysCounter: {
     marginVertical: 16,
   },
   noCoupleCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 20,
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 16,
-    shadowColor: '#F06292',
+    shadowColor: "#F06292",
     shadowOffset: {
       width: 0,
       height: 8,
@@ -243,31 +243,31 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 10,
     borderWidth: 1,
-    borderColor: '#FCE4EC',
+    borderColor: "#FCE4EC",
   },
   noCoupleTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#C2185B',
+    fontWeight: "bold",
+    color: "#C2185B",
     marginTop: 16,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   noCoupleSubtitle: {
     fontSize: 16,
-    color: '#8E24AA',
-    textAlign: 'center',
+    color: "#8E24AA",
+    textAlign: "center",
     lineHeight: 24,
     marginBottom: 20,
   },
   connectButton: {
-    backgroundColor: '#E91E63',
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: "#E91E63",
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 25,
-    shadowColor: '#E91E63',
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -277,9 +277,9 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   connectButtonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 8,
   },
   quickActions: {
@@ -287,23 +287,23 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#C2185B',
+    fontWeight: "bold",
+    color: "#C2185B",
     marginBottom: 16,
   },
   actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
   actionCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 16,
     padding: 20,
-    width: '48%',
-    alignItems: 'center',
+    width: "48%",
+    alignItems: "center",
     marginBottom: 16,
-    shadowColor: '#E91E63',
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -312,42 +312,42 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#FCE4EC',
+    borderColor: "#FCE4EC",
   },
   notesAction: {
-    borderLeftColor: '#8E24AA',
+    borderLeftColor: "#8E24AA",
     borderLeftWidth: 4,
   },
   remindersAction: {
-    borderLeftColor: '#FF6F00',
+    borderLeftColor: "#FF6F00",
     borderLeftWidth: 4,
   },
   coupleAction: {
-    borderLeftColor: '#E91E63',
+    borderLeftColor: "#E91E63",
     borderLeftWidth: 4,
   },
   profileAction: {
-    borderLeftColor: '#9C27B0',
+    borderLeftColor: "#9C27B0",
     borderLeftWidth: 4,
   },
   actionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#C2185B',
+    fontWeight: "bold",
+    color: "#C2185B",
     marginTop: 12,
     marginBottom: 4,
   },
   actionSubtitle: {
     fontSize: 12,
-    color: '#8E24AA',
-    textAlign: 'center',
+    color: "#8E24AA",
+    textAlign: "center",
   },
   quoteCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 16,
     padding: 20,
     marginTop: 16,
-    shadowColor: '#E91E63',
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -356,25 +356,25 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#FCE4EC',
+    borderColor: "#FCE4EC",
   },
   quoteIcon: {
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 16,
   },
   quote: {
     fontSize: 16,
-    color: '#8E24AA',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#8E24AA",
+    textAlign: "center",
+    fontStyle: "italic",
     lineHeight: 24,
     marginBottom: 12,
   },
   quoteAuthor: {
     fontSize: 14,
-    color: '#C2185B',
-    textAlign: 'center',
-    fontWeight: '600',
+    color: "#C2185B",
+    textAlign: "center",
+    fontWeight: "600",
   },
 });
 

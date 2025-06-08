@@ -67,7 +67,6 @@ const UserProfileScreen = ({ navigation }) => {
       profile: userProfile,
     });
   };
-
   const handleLogout = () => {
     Alert.alert(
       "Sign Out",
@@ -193,7 +192,6 @@ const UserProfileScreen = ({ navigation }) => {
               size="large"
               icon="create-outline"
             />
-
             <LoveButton
               title="View Couple Profile 👫"
               onPress={() => navigation.navigate("UserList")}
@@ -202,7 +200,6 @@ const UserProfileScreen = ({ navigation }) => {
               icon="people-outline"
               style={styles.actionButton}
             />
-
             <LoveButton
               title="Sign Out"
               onPress={handleLogout}

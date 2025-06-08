@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,116 +7,123 @@ import {
   Platform,
   ScrollView,
   Alert,
-  SafeAreaView
-} from 'react-native';
-import { useTranslation } from 'react-i18next';
+  SafeAreaView,
+} from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   LoveInput,
   LoveButton,
   LoadingIndicator,
-  LoveBackground
-} from '../../components';
-import { signUp } from '../../services/firebase/auth';
-import { createUser } from '../../services/firebase/firestore';
-import { Timestamp } from 'firebase/firestore';
+  LoveBackground,
+} from "../../components";
+import { signUp } from "../../services/firebase/auth";
+import { createUser } from "../../services/firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 
 const SignUpScreen = ({ navigation }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
-    displayName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    displayName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   const updateFormData = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: ''
+        [field]: "",
       }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.displayName.trim()) {
-      newErrors.displayName = t('auth.validation.nameRequired');
+      newErrors.displayName = t("auth.validation.nameRequired");
     } else if (formData.displayName.trim().length < 2) {
-      newErrors.displayName = t('auth.validation.nameMinLength');
+      newErrors.displayName = t("auth.validation.nameMinLength");
     }
-    
+
     if (!formData.email.trim()) {
-      newErrors.email = t('auth.validation.emailRequired');
+      newErrors.email = t("auth.validation.emailRequired");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('auth.validation.emailInvalid');
+      newErrors.email = t("auth.validation.emailInvalid");
     }
-    
+
     if (!formData.password) {
-      newErrors.password = t('auth.validation.passwordRequired');
+      newErrors.password = t("auth.validation.passwordRequired");
     } else if (formData.password.length < 6) {
-      newErrors.password = t('auth.validation.passwordMinLength');
+      newErrors.password = t("auth.validation.passwordMinLength");
     }
-    
+
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = t('auth.validation.confirmPasswordRequired');
+      newErrors.confirmPassword = t("auth.validation.confirmPasswordRequired");
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('auth.validation.passwordsNoMatch');
+      newErrors.confirmPassword = t("auth.validation.passwordsNoMatch");
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSignUp = async () => {
     if (!validateForm()) return;
-    
+
     setLoading(true);
     setErrors({});
-    
+
     try {
       const { user, error } = await signUp(
         formData.email.trim(),
         formData.password,
         formData.displayName.trim()
       );
-        if (error) {
-          Alert.alert(t('auth.errors.signUpFailed'), error);
-        } else if (user) {        // Create user profile in Firestore
-          const userData = {
-            displayName: formData.displayName.trim(),
-            email: formData.email.trim(),
-            createdAt: Timestamp.now(),
-            bio: '',
-            phoneNumber: '',
-          };
-          
-          const { error: createError } = await createUser(user.uid, userData);
-          if (createError) {
-            console.warn('Warning: Failed to create user profile in Firestore:', createError);
-            // Don't block sign up if Firestore creation fails - it will be created later
-            Alert.alert(
-              t('auth.signUp.welcomeTitle'),
-              t('auth.signUp.welcomeMessage'),
-              [{ text: t('common.ok') }]
-            );
-          } else {
-            console.log('User profile created successfully in Firestore');
-          }
-          
-          // Navigation will be handled by the auth state listener
-          console.log('Sign up successful:', user.email);
+      if (error) {
+        Alert.alert(t("auth.errors.signUpFailed"), error);
+      } else if (user) {
+        // Create user profile in Firestore
+        const userData = {
+          displayName: formData.displayName.trim(),
+          email: formData.email.trim(),
+          createdAt: Timestamp.now(),
+          bio: "",
+          phoneNumber: "",
+        };
+
+        const { error: createError } = await createUser(user.uid, userData);
+        if (createError) {
+          console.warn(
+            "Warning: Failed to create user profile in Firestore:",
+            createError
+          );
+          // Don't block sign up if Firestore creation fails - it will be created later
+          Alert.alert(
+            t("auth.signUp.welcomeTitle"),
+            t("auth.signUp.welcomeMessage"),
+            [{ text: t("common.ok") }]
+          );
+        } else {
+          console.log("User profile created successfully in Firestore");
         }
-      } catch (err) {
-        Alert.alert(t('auth.errors.signUpFailed'), t('auth.errors.unexpectedError'));
+
+        // Navigation will be handled by the auth state listener
+        console.log("Sign up successful:", user.email);
+      }
+    } catch (err) {
+      Alert.alert(
+        t("auth.errors.signUpFailed"),
+        t("auth.errors.unexpectedError")
+      );
     } finally {
       setLoading(false);
     }
@@ -131,7 +138,7 @@ const SignUpScreen = ({ navigation }) => {
       <LoveBackground>
         <SafeAreaView style={styles.loadingContainer}>
           <LoadingIndicator
-            message={t('auth.signUp.loadingMessage')}
+            message={t("auth.signUp.loadingMessage")}
             size="large"
           />
         </SafeAreaView>
@@ -143,25 +150,23 @@ const SignUpScreen = ({ navigation }) => {
     <LoveBackground>
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
         >
-          <ScrollView 
+          <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.header}>
-              <Text style={styles.title}>{t('auth.signUp.title')}</Text>
-              <Text style={styles.subtitle}>
-                {t('auth.signUp.subtitle')}
-              </Text>
+              <Text style={styles.title}>{t("auth.signUp.title")}</Text>
+              <Text style={styles.subtitle}>{t("auth.signUp.subtitle")}</Text>
             </View>
 
             <View style={styles.form}>
               <LoveInput
                 value={formData.displayName}
-                onChangeText={(value) => updateFormData('displayName', value)}
-                placeholder={t('auth.signUp.namePlaceholder')}
+                onChangeText={(value) => updateFormData("displayName", value)}
+                placeholder={t("auth.signUp.namePlaceholder")}
                 autoCapitalize="words"
                 icon="person-outline"
                 error={errors.displayName}
@@ -169,8 +174,8 @@ const SignUpScreen = ({ navigation }) => {
 
               <LoveInput
                 value={formData.email}
-                onChangeText={(value) => updateFormData('email', value)}
-                placeholder={t('auth.signUp.emailPlaceholder')}
+                onChangeText={(value) => updateFormData("email", value)}
+                placeholder={t("auth.signUp.emailPlaceholder")}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -180,8 +185,8 @@ const SignUpScreen = ({ navigation }) => {
 
               <LoveInput
                 value={formData.password}
-                onChangeText={(value) => updateFormData('password', value)}
-                placeholder={t('auth.signUp.passwordPlaceholder')}
+                onChangeText={(value) => updateFormData("password", value)}
+                placeholder={t("auth.signUp.passwordPlaceholder")}
                 secureTextEntry
                 icon="lock-closed-outline"
                 error={errors.password}
@@ -189,15 +194,17 @@ const SignUpScreen = ({ navigation }) => {
 
               <LoveInput
                 value={formData.confirmPassword}
-                onChangeText={(value) => updateFormData('confirmPassword', value)}
-                placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
+                onChangeText={(value) =>
+                  updateFormData("confirmPassword", value)
+                }
+                placeholder={t("auth.signUp.confirmPasswordPlaceholder")}
                 secureTextEntry
                 icon="checkmark-circle-outline"
                 error={errors.confirmPassword}
               />
 
               <LoveButton
-                title={t('auth.signUp.signUpButton')}
+                title={t("auth.signUp.signUpButton")}
                 onPress={handleSignUp}
                 variant="primary"
                 size="large"
@@ -207,12 +214,12 @@ const SignUpScreen = ({ navigation }) => {
 
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>{t('auth.signUp.or')}</Text>
+                <Text style={styles.dividerText}>{t("auth.signUp.or")}</Text>
                 <View style={styles.dividerLine} />
               </View>
 
               <LoveButton
-                title={t('auth.signUp.signInButton')}
+                title={t("auth.signUp.signInButton")}
                 onPress={navigateToLogin}
                 variant="secondary"
                 size="medium"
@@ -222,7 +229,7 @@ const SignUpScreen = ({ navigation }) => {
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>
-                {t('auth.signUp.footerText')}
+                {t("auth.signUp.footerText")}
               </Text>
             </View>
           </ScrollView>
@@ -241,30 +248,31 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 32,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 48,
-  },  title: {
+  },
+  title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#A01050',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#A01050",
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#4F2E24',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#4F2E24",
+    textAlign: "center",
+    fontStyle: "italic",
   },
   form: {
     marginBottom: 32,
@@ -274,26 +282,29 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 24,
-  },  dividerLine: {
+  },
+  dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#F8BBD9',
-  },  dividerText: {
+    backgroundColor: "#F8BBD9",
+  },
+  dividerText: {
     marginHorizontal: 16,
-    color: '#A01050',
-    fontWeight: '600',
+    color: "#A01050",
+    fontWeight: "600",
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 32,
-  },  footerText: {
+  },
+  footerText: {
     fontSize: 14,
-    color: '#5D4037',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#5D4037",
+    textAlign: "center",
+    fontStyle: "italic",
   },
 });
 

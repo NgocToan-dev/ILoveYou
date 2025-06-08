@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   SafeAreaView,
   Alert,
-  RefreshControl 
-} from 'react-native';
-import { 
-  LoveButton, 
-  LoadingIndicator, 
+  RefreshControl,
+} from "react-native";
+import {
+  LoveButton,
+  LoadingIndicator,
   LoveBackground,
-  UserProfileCard 
-} from '../../components';
-import { getCurrentUser } from '../../services/firebase/auth';
-import { getOrCreateUser, getCouple } from '../../services/firebase/firestore';
-import { formatDate } from '../../utils';
+  UserProfileCard,
+} from "../../components";
+import { getCurrentUser } from "../../services/firebase/auth";
+import { getOrCreateUser, getCouple } from "../../services/firebase/firestore";
+import { formatDate } from "../../utils";
 
 const UserListScreen = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -33,44 +33,45 @@ const UserListScreen = ({ navigation }) => {
       const user = getCurrentUser();
       if (user) {
         setCurrentUser(user);
-        
+
         // Load couple data
         const { couple, error } = await getCouple(user.uid);
         if (couple) {
           setCoupleData(couple);
-          
+
           // Find partner's ID
-          const partnerId = couple.members?.find(id => id !== user.uid);
+          const partnerId = couple.members?.find((id) => id !== user.uid);
           if (partnerId) {
             // Load partner's profile using getOrCreateUser with fallback data
-            const { user: partner, error: partnerError } = await getOrCreateUser(partnerId, {
-              uid: partnerId,
-              displayName: 'Partner',
-              email: 'partner@example.com' // This will be overridden if partner exists
-            });
+            const { user: partner, error: partnerError } =
+              await getOrCreateUser(partnerId, {
+                uid: partnerId,
+                displayName: "Partner",
+                email: "partner@example.com", // This will be overridden if partner exists
+              });
             if (partner) {
               setPartnerProfile(partner);
             } else if (partnerError) {
-              console.warn('Partner profile error:', partnerError);
+              console.warn("Partner profile error:", partnerError);
               // Set a placeholder partner profile
               setPartnerProfile({
                 id: partnerId,
-                displayName: 'Partner',
-                email: 'Loading...',
-                bio: 'Partner profile is being set up...'
+                displayName: "Partner",
+                email: "Loading...",
+                bio: "Partner profile is being set up...",
               });
             }
           }
         } else {
-          console.log('No couple found for user');
+          console.log("No couple found for user");
         }
       }
     } catch (error) {
-      console.error('Error loading couple data:', error);
+      console.error("Error loading couple data:", error);
       Alert.alert(
-        'Connection Error',
-        'Unable to load couple information. Please check your connection and try again.',
-        [{ text: 'OK' }]
+        "Connection Error",
+        "Unable to load couple information. Please check your connection and try again.",
+        [{ text: "OK" }]
       );
     } finally {
       setLoading(false);
@@ -85,31 +86,29 @@ const UserListScreen = ({ navigation }) => {
 
   const handleUserPress = (user, isCurrentUser) => {
     if (isCurrentUser) {
-      navigation.navigate('UserProfile');
+      navigation.navigate("UserProfile");
     } else {
       // Show partner profile details
       Alert.alert(
-        `${user.displayName || 'Partner'}'s Profile 💕`,
-        user.bio || 'No bio available yet.',
-        [
-          { text: 'OK', style: 'default' }
-        ]
+        `${user.displayName || "Partner"}'s Profile 💕`,
+        user.bio || "No bio available yet.",
+        [{ text: "OK", style: "default" }]
       );
     }
   };
 
   const handleEditCurrentUser = () => {
-    navigation.navigate('UserEdit', { 
-      user: currentUser, 
-      profile: null // Will be loaded in UserEdit screen
+    navigation.navigate("UserEdit", {
+      user: currentUser,
+      profile: null, // Will be loaded in UserEdit screen
     });
   };
 
   const handleConnectPartner = () => {
     Alert.alert(
-      'Connect with Partner 💕',
-      'Feature coming soon! You\'ll be able to send an invitation to your partner.',
-      [{ text: 'OK', style: 'default' }]
+      "Connect with Partner 💕",
+      "Feature coming soon! You'll be able to send an invitation to your partner.",
+      [{ text: "OK", style: "default" }]
     );
   };
 
@@ -117,9 +116,9 @@ const UserListScreen = ({ navigation }) => {
     return (
       <LoveBackground>
         <SafeAreaView style={styles.loadingContainer}>
-          <LoadingIndicator 
-            message="Loading your love connection..." 
-            size="large" 
+          <LoadingIndicator
+            message="Loading your love connection..."
+            size="large"
           />
         </SafeAreaView>
       </LoveBackground>
@@ -129,7 +128,7 @@ const UserListScreen = ({ navigation }) => {
   return (
     <LoveBackground variant="soft">
       <SafeAreaView style={styles.container}>
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -137,18 +136,21 @@ const UserListScreen = ({ navigation }) => {
               refreshing={refreshing}
               onRefresh={handleRefresh}
               tintColor="#FF69B4"
-              colors={['#FF69B4']}
+              colors={["#FF69B4"]}
             />
           }
         >
           <View style={styles.header}>
             <Text style={styles.title}>Our Love Story 👫</Text>
             <Text style={styles.subtitle}>
-              {coupleData ? 'Your beautiful connection' : 'Start your connection'}
+              {coupleData
+                ? "Your beautiful connection"
+                : "Start your connection"}
             </Text>
           </View>
 
-          {coupleData && (            <View style={styles.coupleInfo}>
+          {coupleData && (
+            <View style={styles.coupleInfo}>
               <Text style={styles.coupleTitle}>💕 Couple Since</Text>
               <Text style={styles.coupleDate}>
                 {formatDate(coupleData.createdAt)}
@@ -158,7 +160,7 @@ const UserListScreen = ({ navigation }) => {
 
           <View style={styles.usersContainer}>
             <Text style={styles.sectionTitle}>
-              {coupleData ? 'Our Profiles' : 'My Profile'}
+              {coupleData ? "Our Profiles" : "My Profile"}
             </Text>
 
             {/* Current User Card */}
@@ -226,10 +228,9 @@ const UserListScreen = ({ navigation }) => {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              {coupleData 
-                ? 'Love grows stronger together! 💝' 
-                : 'Every love story starts with a single step 💕'
-              }
+              {coupleData
+                ? "Love grows stronger together! 💝"
+                : "Every love story starts with a single step 💕"}
             </Text>
           </View>
         </ScrollView>
@@ -247,33 +248,35 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
     paddingHorizontal: 24,
-  },  title: {
+  },
+  title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#C2185B',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#C2185B",
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6D4C41',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#6D4C41",
+    textAlign: "center",
+    fontStyle: "italic",
   },
   coupleInfo: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 16,
     padding: 20,
     marginHorizontal: 16,
     marginBottom: 24,
-    alignItems: 'center',    shadowColor: '#E91E63',
+    alignItems: "center",
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -282,37 +285,39 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#F8BBD9',
+    borderColor: "#F8BBD9",
   },
   coupleTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#E91E63',
+    fontWeight: "bold",
+    color: "#E91E63",
     marginBottom: 8,
   },
   coupleDate: {
     fontSize: 16,
-    color: '#C2185B',
-    fontWeight: '600',
+    color: "#C2185B",
+    fontWeight: "600",
   },
   usersContainer: {
     marginBottom: 32,
-  },  sectionTitle: {
+  },
+  sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#A01050',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#A01050",
+    textAlign: "center",
     marginBottom: 20,
   },
   userCard: {
     marginBottom: 16,
   },
   partnerPlaceholder: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 16,
     padding: 32,
     marginHorizontal: 16,
-    alignItems: 'center',    shadowColor: '#E91E63',
+    alignItems: "center",
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -321,24 +326,25 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     borderWidth: 2,
-    borderColor: '#F8BBD9',
-    borderStyle: 'dashed',
+    borderColor: "#F8BBD9",
+    borderStyle: "dashed",
   },
   partnerPlaceholderEmoji: {
     fontSize: 48,
     marginBottom: 16,
-  },  partnerPlaceholderText: {
+  },
+  partnerPlaceholderText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#A01050',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#A01050",
+    textAlign: "center",
     marginBottom: 8,
   },
   partnerPlaceholderSubtext: {
     fontSize: 14,
-    color: '#4F2E24',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#4F2E24",
+    textAlign: "center",
+    fontStyle: "italic",
   },
   actionsContainer: {
     paddingHorizontal: 24,
@@ -348,13 +354,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: 24,
-  },  footerText: {
+  },
+  footerText: {
     fontSize: 14,
-    color: '#5D4037',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: "#5D4037",
+    textAlign: "center",
+    fontStyle: "italic",
   },
 });
 
