@@ -2,10 +2,14 @@ name = "iloveyou-web"
 compatibility_date = "2024-01-15"
 
 [env.production]
-account_id = "YOUR_ACCOUNT_ID"
+# Thay YOUR_ACCOUNT_ID bằng Account ID thực của bạn từ Cloudflare Dashboard
+# Ví dụ: account_id = "1234567890abcdef1234567890abcdef"
+account_id = "c93c9befa696020e7a06670ff164a30a"
 
 [env.preview]
-account_id = "YOUR_ACCOUNT_ID"
+# Thay YOUR_ACCOUNT_ID bằng Account ID thực của bạn từ Cloudflare Dashboard
+# Ví dụ: account_id = "1234567890abcdef1234567890abcdef"
+account_id = "c93c9befa696020e7a06670ff164a30a"
 
-# Pages configuration
-pages_build_output_dir = "web/dist" 
+# Note: pages_build_output_dir is not needed for Pages projects
+# The build output directory is specified during deployment 
