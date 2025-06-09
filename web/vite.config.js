@@ -8,19 +8,49 @@ export default defineConfig({
   plugins: [
     react({
       include: ['**/*.jsx', '**/*.js'],
-    }),
-    VitePWA({
+    }),    VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-      srcDir: 'public',
-      filename: 'sw.js',
-      strategies: 'injectManifest',
-      injectManifest: {
-        swSrc: 'public/sw.js',
-        swDest: 'dist/sw.js',
-        globDirectory: 'dist',
+      strategies: 'generateSW',
+      workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        maximumFileSizeToCacheInBytes: 3000000,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 365 days
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'firestore-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fcm\.googleapis\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'fcm-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 12 // 12 hours
+              }
+            }
+          }
+        ]
       },
       manifest: {
         name: 'ILoveYou - Couple Love Tracker',
@@ -129,48 +159,7 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 365 days
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'firestore-cache',
-              networkTimeoutSeconds: 3,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fcm\.googleapis\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'fcm-cache',
-              networkTimeoutSeconds: 3,
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 12 // 12 hours
-              }
-            }
-          }
-        ]
+          }        ]
       }
     })
   ],

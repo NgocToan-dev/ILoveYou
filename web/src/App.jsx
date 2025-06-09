@@ -11,14 +11,24 @@ import ErrorBoundary from './components/ui/ErrorBoundary';
 import PWAInstallPrompt, { PWAUpdatePrompt, PWAOfflinePrompt } from './components/pwa/PWAInstallPrompt';
 import { useGlobalKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import performanceService from './services/performance';
+import webNotificationsService from './services/webNotifications';
+import { initializeNotificationService } from '@shared/services/firebase/reminders';
 import './App.css';
 
 function App() {
   // Initialize global keyboard shortcuts
   useGlobalKeyboardShortcuts();
-
   // Initialize performance monitoring
   useEffect(() => {
+    // Initialize notification service for shared reminders
+    initializeNotificationService(webNotificationsService);
+    console.log('✅ Web notification service initialized for reminders');
+
+    // Check for overdue reminders on app startup
+    webNotificationsService.checkOverdueReminders().catch(error => {
+      console.warn('Error checking overdue reminders:', error);
+    });
+
     // Performance monitoring is automatically initialized in the service
     // Mark app initialization
     const measure = performanceService.startMeasure('app_initialization');
@@ -41,9 +51,13 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider theme={muiLoveTheme}>
-        <CssBaseline />
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <BrowserRouter>
+        <CssBaseline />        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true
+            }}
+          >
             <AuthContextProvider>
               <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
                 <AppRoutes />

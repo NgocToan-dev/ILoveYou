@@ -71,10 +71,26 @@ const MilestoneCelebration = ({ milestone, open, onClose }) => {
         </Typography>
         <Typography variant="h6" sx={{ mb: 3 }}>
           {milestone?.description}
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
+        </Typography>        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
           {['💕', '🌹', '✨', '💖', '🥳'].map((emoji, index) => (
-            <Typography key={index} sx={{ fontSize: 30, animation: `bounce 1s infinite ${index * 0.1}s` }}>
+            <Typography 
+              key={index} 
+              sx={{ 
+                fontSize: 30,
+                '@keyframes bounce': {
+                  '0%, 20%, 50%, 80%, 100%': {
+                    transform: 'translateY(0)',
+                  },
+                  '40%': {
+                    transform: 'translateY(-10px)',
+                  },
+                  '60%': {
+                    transform: 'translateY(-5px)',
+                  },
+                },
+                animation: `bounce 1s infinite ${index * 0.1}s`,
+              }}
+            >
               {emoji}
             </Typography>
           ))}
@@ -300,28 +316,12 @@ const LoveDaysCounter = ({ coupleId, compact = false }) => {
             </Fade>
           )}
         </CardContent>
-      </Card>
-
-      {/* Milestone Celebration Modal */}
+      </Card>      {/* Milestone Celebration Modal */}
       <MilestoneCelebration
         milestone={celebrationMilestone}
         open={showCelebration}
         onClose={() => setShowCelebration(false)}
       />
-
-      <style jsx>{`
-        @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% {
-            transform: translateY(0);
-          }
-          40% {
-            transform: translateY(-10px);
-          }
-          60% {
-            transform: translateY(-5px);
-          }
-        }
-      `}</style>
     </>
   );
 };

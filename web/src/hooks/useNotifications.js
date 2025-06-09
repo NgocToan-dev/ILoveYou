@@ -152,7 +152,6 @@ export const useNotifications = () => {
       return { success: false, error: err.message };
     }
   }, [permission]);
-
   // Test FCM notification via Firebase Functions
   const testFCMNotification = useCallback(async (language = 'vi') => {
     try {
@@ -160,7 +159,10 @@ export const useNotifications = () => {
         return { success: false, error: 'User not authenticated' };
       }
       
-      if (!isFCMAvailable) {
+      const isAvailable = supported && permission === 'granted';
+      const fcmAvailable = isAvailable && fcmSupported && serviceWorkerRegistered;
+      
+      if (!fcmAvailable) {
         return { success: false, error: 'FCM not available' };
       }
       
@@ -169,7 +171,7 @@ export const useNotifications = () => {
       console.error('Error testing FCM notification:', err);
       return { success: false, error: err.message };
     }
-  }, [user, isFCMAvailable]);
+  }, [user, supported, permission, fcmSupported, serviceWorkerRegistered]);
 
   // Send reminder notification via Firebase Functions
   const sendReminder = useCallback(async (reminderId, language = 'vi') => {
