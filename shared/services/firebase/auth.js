@@ -53,3 +53,15 @@ export const getCurrentUser = () => {
 export const onAuthStateChange = (callback) => {
   return onAuthStateChanged(auth, callback);
 };
+
+// Create authService object for easier importing
+export const authService = {
+  signUp,
+  signup: signUp, // alias
+  signIn,
+  login: signIn, // alias
+  logOut,
+  logout: logOut, // alias
+  getCurrentUser,
+  onAuthStateChanged: onAuthStateChange,
+};

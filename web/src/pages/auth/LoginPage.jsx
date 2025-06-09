@@ -153,6 +153,16 @@ const LoginPage = () => {
                 variant="outlined"
                 autoComplete="email"
                 autoFocus
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    backgroundColor: 'white',
+                    paddingLeft: '8px',
+                    paddingRight: '8px',
+                  },
+                }}
               />
 
               <TextField
@@ -168,6 +178,16 @@ const LoginPage = () => {
                 margin="normal"
                 variant="outlined"
                 autoComplete="current-password"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    backgroundColor: 'white',
+                    paddingLeft: '8px',
+                    paddingRight: '8px',
+                  },
+                }}
               />
 
               <Button

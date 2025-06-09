@@ -52,6 +52,32 @@ export const muiLoveTheme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: 12,
+            '& fieldset': {
+              borderColor: 'rgba(0, 0, 0, 0.23)',
+            },
+            '&:hover fieldset': {
+              borderColor: 'rgba(0, 0, 0, 0.5)',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: loveTheme.primary.main,
+            },
+          },
+          '& .MuiInputLabel-root': {
+            backgroundColor: 'white',
+            paddingLeft: '4px',
+            paddingRight: '4px',
+            '&.Mui-focused': {
+              color: loveTheme.primary.main,
+            },
+          },
+          '& .MuiInputLabel-outlined': {
+            transform: 'translate(14px, 16px) scale(1)',
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(14px, -9px) scale(0.75)',
+              backgroundColor: 'white',
+              paddingLeft: '8px',
+              paddingRight: '8px',
+            },
           },
         },
       },

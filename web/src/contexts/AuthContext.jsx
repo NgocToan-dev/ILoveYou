@@ -63,3 +63,6 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+// Export AuthProvider as AuthContextProvider for backward compatibility
+export const AuthContextProvider = AuthProvider;

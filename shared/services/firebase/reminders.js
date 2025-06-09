@@ -28,7 +28,15 @@ import {
 } from "../../constants/reminders";
 
 // Re-export constants for backward compatibility
-export { REMINDER_TYPES, REMINDER_PRIORITIES, REMINDER_CATEGORIES, RECURRING_TYPES };
+export { 
+  REMINDER_TYPES, 
+  REMINDER_PRIORITIES, 
+  REMINDER_CATEGORIES, 
+  RECURRING_TYPES,
+  getCategoryDisplayInfo,
+  getPriorityDisplayInfo,
+  getRecurringDisplayInfo
+};
 
 // Platform-specific notification service injection
 let notificationService = null;

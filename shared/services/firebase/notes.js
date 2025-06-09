@@ -17,7 +17,7 @@ import { Note, notesFromQuerySnapshot } from "../../models";
 import { NOTE_CATEGORIES, NOTE_TYPES, getCategoryDisplayInfo } from "../../constants/notes";
 
 // Re-export constants for backward compatibility
-export { NOTE_CATEGORIES, NOTE_TYPES };
+export { NOTE_CATEGORIES, NOTE_TYPES, getCategoryDisplayInfo };
 
 // Create a new note
 export const createNote = async (noteData) => {

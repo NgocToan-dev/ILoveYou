@@ -3,8 +3,8 @@ import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
 class PerformanceService {
   constructor() {
     this.metrics = new Map();
-    this.isEnabled = process.env.NODE_ENV === 'production';
-    this.analyticsEndpoint = process.env.VITE_ANALYTICS_ENDPOINT;
+    this.isEnabled = import.meta.env.MODE === 'production';
+    this.analyticsEndpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
     
     if (this.isEnabled) {
       this.initializeWebVitals();

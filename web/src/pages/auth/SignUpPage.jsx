@@ -169,6 +169,16 @@ const SignUpPage = () => {
                 variant="outlined"
                 autoComplete="name"
                 autoFocus
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    backgroundColor: 'white',
+                    paddingLeft: '8px',
+                    paddingRight: '8px',
+                  },
+                }}
               />
 
               <TextField
@@ -184,6 +194,16 @@ const SignUpPage = () => {
                 margin="normal"
                 variant="outlined"
                 autoComplete="email"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    backgroundColor: 'white',
+                    paddingLeft: '8px',
+                    paddingRight: '8px',
+                  },
+                }}
               />
 
               <TextField
@@ -199,6 +219,16 @@ const SignUpPage = () => {
                 margin="normal"
                 variant="outlined"
                 autoComplete="new-password"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    backgroundColor: 'white',
+                    paddingLeft: '8px',
+                    paddingRight: '8px',
+                  },
+                }}
               />
 
               <TextField
@@ -214,6 +244,16 @@ const SignUpPage = () => {
                 margin="normal"
                 variant="outlined"
                 autoComplete="new-password"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    backgroundColor: 'white',
+                    paddingLeft: '8px',
+                    paddingRight: '8px',
+                  },
+                }}
               />
 
               <Button
