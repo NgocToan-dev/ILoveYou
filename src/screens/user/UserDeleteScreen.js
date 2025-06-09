@@ -15,24 +15,24 @@ const UserDeleteScreen = ({ navigation }) => {
   const [error, setError] = useState("");
 
   const currentUser = getCurrentUser();
-  const requiredText = "DELETE MY ACCOUNT";
+  const requiredText = "XÓA TÀI KHOẢN CỦA TÔI";
 
   const handleDeleteAccount = async () => {
     if (confirmationText.trim() !== requiredText) {
-      setError("Please type the exact confirmation text");
+      setError("Vui lòng nhập chính xác văn bản xác nhận");
       return;
     }
 
     Alert.alert(
-      "💔 Final Confirmation",
-      "This action cannot be undone. Your account and all your love memories will be permanently deleted.\n\nAre you absolutely sure?",
+      "💔 Xác nhận cuối cùng",
+      "Hành động này không thể hoàn tác. Tài khoản và tất cả kỷ niệm tình yêu của bạn sẽ bị xóa vĩnh viễn.\n\nBạn có thực sự chắc chắn không?",
       [
         {
-          text: "Cancel",
+          text: "Hủy bỏ",
           style: "cancel",
         },
         {
-          text: "Delete Forever",
+          text: "Xóa vĩnh viễn",
           style: "destructive",
           onPress: performAccountDeletion,
         },
@@ -46,7 +46,7 @@ const UserDeleteScreen = ({ navigation }) => {
 
     try {
       if (!currentUser) {
-        throw new Error("No user found");
+        throw new Error("Không tìm thấy người dùng");
       }
 
       // Delete the user account from Firebase Auth
@@ -59,8 +59,8 @@ const UserDeleteScreen = ({ navigation }) => {
       // 4. Notify the partner if applicable
 
       Alert.alert(
-        "Account Deleted 💔",
-        "Your account has been permanently deleted. We're sorry to see you go.",
+        "Tài khoản đã bị xóa 💔",
+        "Tài khoản của bạn đã bị xóa vĩnh viễn. Chúng tôi rất tiếc khi phải chia tay bạn.",
         [
           {
             text: "OK",
@@ -78,14 +78,14 @@ const UserDeleteScreen = ({ navigation }) => {
     } catch (err) {
       console.error("Error deleting account:", err);
 
-      let errorMessage = "Failed to delete account. Please try again.";
+      let errorMessage = "Không thể xóa tài khoản. Vui lòng thử lại.";
 
       if (err.code === "auth/requires-recent-login") {
         errorMessage =
-          "For security reasons, please sign out and sign back in before deleting your account.";
+          "Vì lý do bảo mật, vui lòng đăng xuất và đăng nhập lại trước khi xóa tài khoản.";
       }
 
-      Alert.alert("Error", errorMessage);
+      Alert.alert("Lỗi", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ const UserDeleteScreen = ({ navigation }) => {
       <LoveBackground variant="secondary">
         <SafeAreaView style={styles.loadingContainer}>
           <LoadingIndicator
-            message="Processing account deletion..."
+            message="Đang xử lý việc xóa tài khoản..."
             size="large"
           />
         </SafeAreaView>
@@ -114,44 +114,44 @@ const UserDeleteScreen = ({ navigation }) => {
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.warningEmoji}>⚠️💔⚠️</Text>
-            <Text style={styles.title}>Delete Account</Text>
-            <Text style={styles.subtitle}>This action cannot be undone</Text>
+            <Text style={styles.title}>Xóa tài khoản</Text>
+            <Text style={styles.subtitle}>
+              Hành động này không thể hoàn tác
+            </Text>
           </View>
-
           <View style={styles.warningContainer}>
-            <Text style={styles.warningTitle}>⚠️ Warning</Text>
+            <Text style={styles.warningTitle}>⚠️ Cảnh báo</Text>
             <Text style={styles.warningText}>
-              Deleting your account will permanently remove:
+              Việc xóa tài khoản sẽ loại bỏ vĩnh viễn:
             </Text>
             <View style={styles.warningList}>
               <Text style={styles.warningItem}>
-                • Your profile and personal information
+                • Hồ sơ và thông tin cá nhân của bạn
               </Text>
               <Text style={styles.warningItem}>
-                • All your love messages and memories
+                • Tất cả tin nhắn tình yêu và kỷ niệm
               </Text>
               <Text style={styles.warningItem}>
-                • Your connection with your partner
+                • Kết nối với người yêu của bạn
               </Text>
               <Text style={styles.warningItem}>
-                • All app data and preferences
+                • Tất cả dữ liệu và cài đặt ứng dụng
               </Text>
             </View>
             <Text style={styles.warningFooter}>
-              This action is irreversible and cannot be undone.
+              Hành động này không thể hoàn tác và không thể khôi phục.
             </Text>
           </View>
-
           <View style={styles.confirmationContainer}>
             <Text style={styles.confirmationLabel}>
-              To confirm deletion, please type:
+              Để xác nhận xóa, vui lòng nhập:
             </Text>
             <Text style={styles.confirmationRequired}>{requiredText}</Text>
 
             <LoveInput
               value={confirmationText}
               onChangeText={setConfirmationText}
-              placeholder="Type the confirmation text above"
+              placeholder="Nhập văn bản xác nhận ở trên"
               autoCapitalize="characters"
               autoCorrect={false}
               icon="warning-outline"
@@ -159,10 +159,9 @@ const UserDeleteScreen = ({ navigation }) => {
               style={styles.confirmationInput}
             />
           </View>
-
           <View style={styles.actionsContainer}>
             <LoveButton
-              title="Delete My Account Forever 💔"
+              title="Xóa tài khoản của tôi vĩnh viễn 💔"
               onPress={handleDeleteAccount}
               variant="primary"
               size="large"
@@ -176,7 +175,7 @@ const UserDeleteScreen = ({ navigation }) => {
             />
 
             <LoveButton
-              title="Cancel - Keep My Account 💕"
+              title="Hủy bỏ - Giữ tài khoản 💕"
               onPress={handleCancel}
               variant="secondary"
               size="medium"
@@ -184,11 +183,10 @@ const UserDeleteScreen = ({ navigation }) => {
               style={styles.cancelButton}
             />
           </View>
-
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Need help? Consider reaching out to support before deleting your
-              account.
+              Cần hỗ trợ? Hãy liên hệ với bộ phận hỗ trợ trước khi xóa tài
+              khoản.
             </Text>
           </View>
         </View>

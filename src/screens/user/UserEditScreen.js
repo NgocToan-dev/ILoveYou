@@ -61,8 +61,8 @@ const UserEditScreen = ({ navigation, route }) => {
     } catch (error) {
       console.error("Error loading user data:", error);
       Alert.alert(
-        "Loading Error",
-        "Unable to load your profile data. Using default values.",
+        "Lỗi tải thông tin",
+        "Không thể tải dữ liệu hồ sơ của bạn. Sử dụng giá trị mặc định.",
         [{ text: "OK" }]
       );
     } finally {
@@ -83,25 +83,24 @@ const UserEditScreen = ({ navigation, route }) => {
       }));
     }
   };
-
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.displayName.trim()) {
-      newErrors.displayName = "Name is required";
+      newErrors.displayName = "Tên là bắt buộc";
     } else if (formData.displayName.trim().length < 2) {
-      newErrors.displayName = "Name must be at least 2 characters";
+      newErrors.displayName = "Tên phải có ít nhất 2 ký tự";
     }
 
     if (formData.bio.length > 200) {
-      newErrors.bio = "Bio must be less than 200 characters";
+      newErrors.bio = "Giới thiệu phải ít hơn 200 ký tự";
     }
 
     if (
       formData.phoneNumber &&
       !/^[\+]?[1-9][\d]{0,15}$/.test(formData.phoneNumber.replace(/\s/g, ""))
     ) {
-      newErrors.phoneNumber = "Please enter a valid phone number";
+      newErrors.phoneNumber = "Vui lòng nhập số điện thoại hợp lệ";
     }
 
     setErrors(newErrors);
@@ -117,8 +116,8 @@ const UserEditScreen = ({ navigation, route }) => {
       const currentUser = getCurrentUser();
       if (!currentUser) {
         Alert.alert(
-          "Authentication Error",
-          "You need to be signed in to update your profile. Please sign in again.",
+          "Lỗi xác thực",
+          "Bạn cần đăng nhập để cập nhật hồ sơ. Vui lòng đăng nhập lại.",
           [
             {
               text: "OK",
@@ -143,15 +142,14 @@ const UserEditScreen = ({ navigation, route }) => {
         phoneNumber: formData.phoneNumber.trim(),
         updatedAt: Timestamp.now(),
       };
-
       const { error } = await updateUserWithSync(currentUser.uid, userData);
 
       if (error) {
-        Alert.alert("Error", error);
+        Alert.alert("Lỗi", error);
       } else {
         Alert.alert(
-          "Profile Updated! 💕",
-          "Your lovely profile has been updated successfully and synced across all your data.",
+          "Cập nhật hồ sơ thành công! 💕",
+          "Hồ sơ xinh đẹp của bạn đã được cập nhật thành công và đồng bộ trên tất cả dữ liệu.",
           [
             {
               text: "OK",
@@ -162,7 +160,7 @@ const UserEditScreen = ({ navigation, route }) => {
       }
     } catch (err) {
       console.error("Error updating profile:", err);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+      Alert.alert("Lỗi", "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -171,12 +169,11 @@ const UserEditScreen = ({ navigation, route }) => {
   const handleCancel = () => {
     navigation.goBack();
   };
-
   if (initialLoading) {
     return (
       <LoveBackground>
         <SafeAreaView style={styles.loadingContainer}>
-          <LoadingIndicator message="Loading your profile..." size="large" />
+          <LoadingIndicator message="Đang tải hồ sơ của bạn..." size="large" />
         </SafeAreaView>
       </LoveBackground>
     );
@@ -187,7 +184,7 @@ const UserEditScreen = ({ navigation, route }) => {
       <LoveBackground>
         <SafeAreaView style={styles.loadingContainer}>
           <LoadingIndicator
-            message="Saving your lovely changes..."
+            message="Đang lưu những thay đổi đáng yêu..."
             size="large"
           />
         </SafeAreaView>
@@ -207,30 +204,30 @@ const UserEditScreen = ({ navigation, route }) => {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.header}>
-              <Text style={styles.title}>Edit Profile 💕</Text>
+              <Text style={styles.title}>Chỉnh sửa hồ sơ 💕</Text>
               <Text style={styles.subtitle}>
-                Update your lovely information
+                Cập nhật thông tin đáng yêu của bạn
               </Text>
             </View>
             <View style={styles.form}>
               <View style={styles.inputSection}>
-                <Text style={styles.sectionTitle}>📝 Basic Information</Text>
+                <Text style={styles.sectionTitle}>📝 Thông tin cơ bản</Text>
                 <LoveInput
                   value={formData.displayName}
                   onChangeText={(value) => updateFormData("displayName", value)}
-                  placeholder="Your lovely name"
+                  placeholder="Tên đáng yêu của bạn"
                   autoCapitalize="words"
                   icon="person-outline"
                   error={errors.displayName}
                 />
               </View>
               <View style={styles.inputSection}>
-                <Text style={styles.sectionTitle}>💕 About You</Text>
+                <Text style={styles.sectionTitle}>💕 Về bạn</Text>
                 <View style={styles.inputWithLabel}>
                   <LoveInput
                     value={formData.bio}
                     onChangeText={(value) => updateFormData("bio", value)}
-                    placeholder="Tell something sweet about yourself..."
+                    placeholder="Kể một điều ngọt ngào về bản thân..."
                     multiline
                     numberOfLines={4}
                     maxLength={200}
@@ -238,17 +235,17 @@ const UserEditScreen = ({ navigation, route }) => {
                     error={errors.bio}
                   />
                   <Text style={styles.characterCount}>
-                    {formData.bio.length}/200 characters
+                    {formData.bio.length}/200 ký tự
                   </Text>
                 </View>
               </View>
 
               <View style={styles.inputSection}>
-                <Text style={styles.sectionTitle}>📞 Contact Info</Text>
+                <Text style={styles.sectionTitle}>📞 Thông tin liên hệ</Text>
                 <LoveInput
                   value={formData.phoneNumber}
                   onChangeText={(value) => updateFormData("phoneNumber", value)}
-                  placeholder="Phone number (Optional)"
+                  placeholder="Số điện thoại (Không bắt buộc)"
                   keyboardType="phone-pad"
                   icon="call-outline"
                   error={errors.phoneNumber}
@@ -257,7 +254,7 @@ const UserEditScreen = ({ navigation, route }) => {
             </View>
             <View style={styles.buttonsContainer}>
               <LoveButton
-                title="Save Changes"
+                title="Lưu thay đổi"
                 onPress={handleSave}
                 variant="primary"
                 size="large"
@@ -265,7 +262,7 @@ const UserEditScreen = ({ navigation, route }) => {
               />
 
               <LoveButton
-                title="Cancel"
+                title="Hủy bỏ"
                 onPress={handleCancel}
                 variant="outline"
                 size="medium"

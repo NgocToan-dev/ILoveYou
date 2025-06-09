@@ -75,6 +75,11 @@ const UserStack = () => {
         options={{ title: t('navigation.headers.myProfile') }}
       />
       <Stack.Screen
+        name="UserList"
+        component={UserListScreen}
+        options={{ title: t('navigation.headers.userList') }}
+      />
+      <Stack.Screen
         name="UserEdit"
         component={UserEditScreen}
         options={{ title: t('navigation.headers.editProfile') }}
@@ -358,10 +363,10 @@ const linking = {
             screens: {
               RemindersMain: "reminders",
             },
-          },
-          Profile: {
+          },          Profile: {
             screens: {
               UserProfile: "profile",
+              UserList: "profile/users",
               UserEdit: "profile/edit",
               UserDelete: "profile/delete",
             },
@@ -426,7 +431,6 @@ const AppNavigator = () => {
       </LoveBackground>
     );
   }
-
   return (
     <NavigationContainer
       linking={linking}

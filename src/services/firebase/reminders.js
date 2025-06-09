@@ -15,6 +15,19 @@ import {
 import { db, clearFirestoreCache, restartFirestoreConnection } from "./config";
 import { Reminder, remindersFromQuerySnapshot } from "../../models";
 import { formatDateString, toDate } from "../../utils/dateUtils";
+import notificationService from "../notifications";
+import {
+  REMINDER_TYPES,
+  REMINDER_PRIORITIES,
+  REMINDER_CATEGORIES,
+  RECURRING_TYPES,
+  getCategoryDisplayInfo,
+  getPriorityDisplayInfo,
+  getRecurringDisplayInfo
+} from "../../constants/reminders";
+
+// Re-export constants for backward compatibility
+export { REMINDER_TYPES, REMINDER_PRIORITIES, REMINDER_CATEGORIES, RECURRING_TYPES };
 
 // Helper function to safely compare reminder dates
 const isReminderOverdue = (reminder, referenceDate = new Date()) => {
@@ -44,39 +57,6 @@ const compareReminderDates = (reminderA, reminderB) => {
   return dateA - dateB;
 };
 
-// Reminder types
-export const REMINDER_TYPES = {
-  PERSONAL: "personal",
-  COUPLE: "couple",
-};
-
-// Reminder priorities
-export const REMINDER_PRIORITIES = {
-  LOW: "low",
-  MEDIUM: "medium",
-  HIGH: "high",
-  URGENT: "urgent",
-};
-
-// Reminder categories
-export const REMINDER_CATEGORIES = {
-  SPECIAL_OCCASIONS: "special_occasions",
-  DATES: "dates",
-  GIFTS: "gifts",
-  HEALTH_WELLNESS: "health_wellness",
-  PERSONAL_GROWTH: "personal_growth",
-  OTHER: "other",
-};
-
-// Recurring types
-export const RECURRING_TYPES = {
-  NONE: "none",
-  DAILY: "daily",
-  WEEKLY: "weekly",
-  MONTHLY: "monthly",
-  YEARLY: "yearly",
-};
-
 // Create a new reminder
 export const createReminder = async (reminderData) => {
   try {
@@ -101,10 +81,27 @@ export const createReminder = async (reminderData) => {
       reminderModel.toFirestore()
     );
 
-    return {
-      success: true,
+    const createdReminder = {
       id: docRef.id,
       ...reminderModel.toFirestore(),
+    };
+
+    // Schedule notification for the new reminder
+    try {
+      const notificationResult = await notificationService.scheduleReminderNotification(createdReminder);
+      if (notificationResult.success) {
+        console.log('✅ Notification scheduled for new reminder:', createdReminder.title);
+      } else {
+        console.warn('⚠️ Failed to schedule notification:', notificationResult.error);
+      }
+    } catch (notificationError) {
+      console.error('Error scheduling notification for new reminder:', notificationError);
+      // Don't fail the reminder creation if notification fails
+    }
+
+    return {
+      success: true,
+      ...createdReminder,
     };
   } catch (error) {
     console.error("Error creating reminder:", error);
@@ -127,11 +124,43 @@ export const updateReminder = async (reminderId, updateData) => {
       throw new Error("Due date is required");
     }
 
+    // Get current reminder data before update
     const reminderRef = doc(db, "reminders", reminderId);
+    const currentReminderDoc = await getDoc(reminderRef);
+    
+    if (!currentReminderDoc.exists()) {
+      throw new Error("Reminder not found");
+    }
+
+    const currentReminder = { id: reminderId, ...currentReminderDoc.data() };
+
+    // Update reminder in Firestore
     await updateDoc(reminderRef, {
       ...updateData,
       updatedAt: serverTimestamp(),
     });
+
+    // Handle notification updates
+    try {
+      // Cancel existing notifications for this reminder
+      await notificationService.cancelReminderNotifications(reminderId);
+
+      // If the reminder is not completed and has a future due date, schedule new notification
+      const updatedReminder = { ...currentReminder, ...updateData };
+      const dueDate = toDate(updatedReminder.dueDate);
+      
+      if (!updatedReminder.completed && dueDate && dueDate > new Date()) {
+        const notificationResult = await notificationService.scheduleReminderNotification(updatedReminder);
+        if (notificationResult.success) {
+          console.log('✅ Notification rescheduled for updated reminder:', updatedReminder.title);
+        } else {
+          console.warn('⚠️ Failed to reschedule notification:', notificationResult.error);
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error updating notifications for reminder:', notificationError);
+      // Don't fail the reminder update if notification fails
+    }
 
     return true;
   } catch (error) {
@@ -156,6 +185,17 @@ export const deleteReminder = async (reminderId) => {
     if (!reminderDoc.exists()) {
       console.warn('Reminder does not exist:', reminderId);
       throw new Error('Reminder not found');
+    }
+
+    // Cancel any scheduled notifications for this reminder
+    try {
+      const cancelResult = await notificationService.cancelReminderNotifications(reminderId);
+      if (cancelResult.success) {
+        console.log(`✅ Canceled ${cancelResult.canceled || 0} notifications for reminder:`, reminderId);
+      }
+    } catch (notificationError) {
+      console.error('Error canceling notifications for deleted reminder:', notificationError);
+      // Continue with deletion even if notification cancellation fails
     }
 
     // Add a small delay to prevent rapid successive operations that might cause Firestore state issues
@@ -224,6 +264,17 @@ export const completeReminder = async (reminderId) => {
       updatedAt: serverTimestamp(),
     });
 
+    // Cancel any scheduled notifications for this completed reminder
+    try {
+      const cancelResult = await notificationService.cancelReminderNotifications(reminderId);
+      if (cancelResult.success) {
+        console.log(`✅ Canceled ${cancelResult.canceled || 0} notifications for completed reminder:`, reminderId);
+      }
+    } catch (notificationError) {
+      console.error('Error canceling notifications for completed reminder:', notificationError);
+      // Don't fail the completion if notification cancellation fails
+    }
+
     return true;
   } catch (error) {
     console.error("Error completing reminder:", error);
@@ -234,12 +285,45 @@ export const completeReminder = async (reminderId) => {
 // Mark reminder as uncompleted
 export const uncompleteReminder = async (reminderId) => {
   try {
+    // Get reminder data before updating
     const reminderRef = doc(db, "reminders", reminderId);
+    const reminderDoc = await getDoc(reminderRef);
+    
+    if (!reminderDoc.exists()) {
+      throw new Error("Reminder not found");
+    }
+
+    const reminderData = { id: reminderId, ...reminderDoc.data() };
+
     await updateDoc(reminderRef, {
       completed: false,
       completedAt: null,
       updatedAt: serverTimestamp(),
     });
+
+    // If the reminder has a future due date, reschedule notifications
+    try {
+      const dueDate = toDate(reminderData.dueDate);
+      
+      if (dueDate && dueDate > new Date()) {
+        // Create updated reminder object for scheduling
+        const updatedReminder = { 
+          ...reminderData, 
+          completed: false, 
+          completedAt: null 
+        };
+        
+        const notificationResult = await notificationService.scheduleReminderNotification(updatedReminder);
+        if (notificationResult.success) {
+          console.log('✅ Notification rescheduled for uncompleted reminder:', updatedReminder.title);
+        } else {
+          console.warn('⚠️ Failed to reschedule notification:', notificationResult.error);
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error rescheduling notifications for uncompleted reminder:', notificationError);
+      // Don't fail the reminder update if notification fails
+    }
 
     return true;
   } catch (error) {
@@ -607,83 +691,18 @@ export const getRemindersStats = async (userId, coupleId) => {
   }
 };
 
-// Helper function to get priority color
+// Re-export helper functions for backward compatibility
 export const getPriorityColor = (priority) => {
-  const colors = {
-    [REMINDER_PRIORITIES.LOW]: "#4CAF50",
-    [REMINDER_PRIORITIES.MEDIUM]: "#FF9800",
-    [REMINDER_PRIORITIES.HIGH]: "#FF5722",
-    [REMINDER_PRIORITIES.URGENT]: "#F44336",
-  };
-
-  return colors[priority] || colors[REMINDER_PRIORITIES.MEDIUM];
+  return getPriorityDisplayInfo(priority).color;
 };
 
-// Helper function to get priority name
 export const getPriorityName = (priority) => {
-  const names = {
-    [REMINDER_PRIORITIES.LOW]: "Thấp",
-    [REMINDER_PRIORITIES.MEDIUM]: "Trung bình",
-    [REMINDER_PRIORITIES.HIGH]: "Cao",
-    [REMINDER_PRIORITIES.URGENT]: "Khẩn cấp",
-  };
-
-  return names[priority] || names[REMINDER_PRIORITIES.MEDIUM];
+  return getPriorityDisplayInfo(priority).name;
 };
 
-// Helper function to get recurring name
 export const getRecurringName = (recurring) => {
-  const names = {
-    [RECURRING_TYPES.NONE]: "Không lặp lại",
-    [RECURRING_TYPES.DAILY]: "Hàng ngày",
-    [RECURRING_TYPES.WEEKLY]: "Hàng tuần",
-    [RECURRING_TYPES.MONTHLY]: "Hàng tháng",
-    [RECURRING_TYPES.YEARLY]: "Hàng năm",
-  };
-
-  return names[recurring] || names[RECURRING_TYPES.NONE];
+  return getRecurringDisplayInfo(recurring).name;
 };
 
-// Helper function to get category display info
-export const getCategoryDisplayInfo = (category) => {
-  const categoryInfo = {
-    [REMINDER_CATEGORIES.SPECIAL_OCCASIONS]: {
-      name: "Sự kiện đặc biệt",
-      emoji: "🎉",
-      color: "#E91E63",
-      description: "Sinh nhật, kỷ niệm, lễ tết",
-    },
-    [REMINDER_CATEGORIES.DATES]: {
-      name: "Hẹn hò",
-      emoji: "💑",
-      color: "#9C27B0",
-      description: "Date nights, romantic dinners",
-    },
-    [REMINDER_CATEGORIES.GIFTS]: {
-      name: "Quà tặng",
-      emoji: "🎁",
-      color: "#FF9800",
-      description: "Mua quà, chuẩn bị surprise",
-    },
-    [REMINDER_CATEGORIES.HEALTH_WELLNESS]: {
-      name: "Sức khỏe",
-      emoji: "💪",
-      color: "#4CAF50",
-      description: "Tập gym, khám sức khỏe",
-    },
-    [REMINDER_CATEGORIES.PERSONAL_GROWTH]: {
-      name: "Phát triển",
-      emoji: "📚",
-      color: "#2196F3",
-      description: "Học hỏi, rèn luyện kỹ năng",
-    },
-    [REMINDER_CATEGORIES.OTHER]: {
-      name: "Khác",
-      emoji: "📌",
-      color: "#607D8B",
-      description: "Các việc khác",
-    },
-  };
-
-  return categoryInfo[category] || categoryInfo[REMINDER_CATEGORIES.OTHER];
-};
+// Re-export getCategoryDisplayInfo
+export { getCategoryDisplayInfo };

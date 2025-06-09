@@ -413,7 +413,32 @@ npm install @react-native-firebase/analytics
 - No comprehensive testing suite
 - Limited error boundary coverage
 - Basic offline handling
-- Manual dependency version management
+- ~~Manual dependency version management~~ ✅ **RESOLVED**: Added .npmrc configuration
+
+### Recent Fixes Applied
+1. **Dependency Resolution**:
+   - Fixed ERESOLVE conflicts with `react-native-modal-datetime-picker`
+   - Added missing peer dependency `@react-native-community/datetimepicker`
+   - Created [`.npmrc`](.npmrc:1) with `legacy-peer-deps=true` for automatic conflict resolution
+2. **Babel Configuration**:
+   - Fixed Flow syntax error by updating [`babel.config.js`](babel.config.js:1) to use `babel-preset-expo`
+3. **App Configuration**:
+   - Removed invalid project ID from [`app.json`](app.json:1) to prevent notification service warnings
+4. **Navigation System**:
+   - Fixed "Cannot set property 'navigator' of undefined" error in [`AppNavigator.js`](src/navigation/AppNavigator.js:1)
+   - Updated [`navigationService`](src/services/navigation/index.js:1) to use ES6 modules instead of CommonJS
+   - Removed problematic navigation service reference from NavigationContainer temporarily
+5. **Notification Service**:
+   - Fixed "No projectId found" error in [`src/services/notifications/index.js`](src/services/notifications/index.js:1)
+   - Added graceful handling for missing project ID in development mode
+   - Fixed deprecated `removeNotificationSubscription` warning by using `subscription.remove()`
+   - Notifications now initialize properly without requiring Expo project configuration
+6. **Circular Dependencies**:
+   - Fixed require cycle between `src/models/Note.js` and `src/services/firebase/notes.js`
+   - Fixed require cycle between `src/models/Reminder.js` and `src/services/firebase/reminders.js`
+   - Created [`src/constants/notes.js`](src/constants/notes.js:1) to centralize note-related constants
+   - Created [`src/constants/reminders.js`](src/constants/reminders.js:1) to centralize reminder-related constants
+   - All models now import constants from dedicated files instead of service files
 
 ### Planned Improvements
 1. **Testing Infrastructure**: Comprehensive test coverage

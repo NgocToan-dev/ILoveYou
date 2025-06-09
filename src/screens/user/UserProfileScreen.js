@@ -40,8 +40,8 @@ const UserProfileScreen = ({ navigation }) => {
           console.error("Error loading user profile:", error);
           // Show a more user-friendly error message
           Alert.alert(
-            "Profile Load Error",
-            "We had trouble loading your profile. Please try refreshing or contact support if the problem persists.",
+            "Lỗi tải hồ sơ",
+            "Chúng tôi gặp sự cố khi tải hồ sơ của bạn. Vui lòng thử làm mới hoặc liên hệ hỗ trợ nếu vấn đề vẫn tiếp tục.",
             [{ text: "OK" }]
           );
         }
@@ -52,8 +52,8 @@ const UserProfileScreen = ({ navigation }) => {
     } catch (error) {
       console.error("Error loading user profile:", error);
       Alert.alert(
-        "Connection Error",
-        "Unable to connect to our servers. Please check your internet connection and try again.",
+        "Lỗi kết nối",
+        "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối internet và thử lại.",
         [{ text: "OK" }]
       );
     } finally {
@@ -69,22 +69,22 @@ const UserProfileScreen = ({ navigation }) => {
   };
   const handleLogout = () => {
     Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out? We'll miss you! 💔",
+      "Đăng xuất",
+      "Bạn có chắc chắn muốn đăng xuất không? Chúng tôi sẽ nhớ bạn! 💔",
       [
         {
-          text: "Cancel",
+          text: "Hủy bỏ",
           style: "cancel",
         },
         {
-          text: "Sign Out",
+          text: "Đăng xuất",
           style: "destructive",
           onPress: async () => {
             try {
               await logOut();
               // Navigation will be handled by auth state listener
             } catch (error) {
-              Alert.alert("Error", "Failed to sign out. Please try again.");
+              Alert.alert("Lỗi", "Không thể đăng xuất. Vui lòng thử lại.");
             }
           },
         },
@@ -97,7 +97,7 @@ const UserProfileScreen = ({ navigation }) => {
       <LoveBackground>
         <SafeAreaView style={styles.loadingContainer}>
           <LoadingIndicator
-            message="Loading your lovely profile..."
+            message="Đang tải hồ sơ xinh đẹp của bạn..."
             size="large"
           />
         </SafeAreaView>
@@ -121,9 +121,9 @@ const UserProfileScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>My Profile 💕</Text>
+            <Text style={styles.title}>Hồ sơ của tôi 💕</Text>
             <Text style={styles.subtitle}>
-              Your beautiful details at a glance
+              Thông tin xinh đẹp của bạn
             </Text>
           </View>
           <UserProfileCard
@@ -134,41 +134,41 @@ const UserProfileScreen = ({ navigation }) => {
           />
           {/* Account Information Section */}
           <View style={styles.infoSection}>
-            <Text style={styles.sectionTitle}>📱 Account Information</Text>
+            <Text style={styles.sectionTitle}>📱 Thông tin tài khoản</Text>
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <Ionicons name="mail-outline" size={20} color="#E91E63" />
                 <Text style={styles.infoLabel}>Email</Text>
                 <Text style={styles.infoValue}>
-                  {displayUser?.email || "Not provided"}
+                  {displayUser?.email || "Chưa cung cấp"}
                 </Text>
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <Ionicons name="calendar-outline" size={20} color="#E91E63" />
-                <Text style={styles.infoLabel}>Member Since</Text>
+                <Text style={styles.infoLabel}>Thành viên từ</Text>
                 <Text style={styles.infoValue}>
                   {userProfile?.createdAt
                     ? new Date(
                         userProfile.createdAt.seconds * 1000
                       ).toLocaleDateString()
-                    : "Recently"}
+                    : "Gần đây"}
                 </Text>
               </View>
             </View>
           </View>
           {/* Quick Stats Section */}
           <View style={styles.infoSection}>
-            <Text style={styles.sectionTitle}>💝 Love Statistics</Text>
+            <Text style={styles.sectionTitle}>💝 Thống kê tình yêu</Text>
             <View style={styles.statsGrid}>
               <View style={styles.statItem}>
                 <Ionicons name="heart" size={24} color="#E91E63" />
                 <Text style={styles.statNumber}>0</Text>
-                <Text style={styles.statLabel}>Notes Created</Text>
+                <Text style={styles.statLabel}>Ghi chú đã tạo</Text>
               </View>
               <View style={styles.statItem}>
                 <Ionicons name="notifications" size={24} color="#FF6B6B" />
                 <Text style={styles.statNumber}>0</Text>
-                <Text style={styles.statLabel}>Reminders Set</Text>
+                <Text style={styles.statLabel}>Nhắc nhở đã đặt</Text>
               </View>
               <View style={styles.statItem}>
                 <Ionicons name="calendar" size={24} color="#4CAF50" />
@@ -180,20 +180,20 @@ const UserProfileScreen = ({ navigation }) => {
                       )
                     : 0}
                 </Text>
-                <Text style={styles.statLabel}>Days Active</Text>
+                <Text style={styles.statLabel}>Ngày hoạt động</Text>
               </View>
             </View>
           </View>
           <View style={styles.actionsContainer}>
             <LoveButton
-              title="Edit My Profile"
+              title="Chỉnh sửa hồ sơ"
               onPress={handleEditProfile}
               variant="primary"
               size="large"
               icon="create-outline"
             />
             <LoveButton
-              title="View Couple Profile 👫"
+              title="Xem hồ sơ cặp đôi 👫"
               onPress={() => navigation.navigate("UserList")}
               variant="secondary"
               size="medium"
@@ -201,7 +201,7 @@ const UserProfileScreen = ({ navigation }) => {
               style={styles.actionButton}
             />
             <LoveButton
-              title="Sign Out"
+              title="Đăng xuất"
               onPress={handleLogout}
               variant="outline"
               size="medium"
@@ -211,7 +211,7 @@ const UserProfileScreen = ({ navigation }) => {
           </View>
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Keep spreading love and kindness! 💝
+              Hãy tiếp tục lan tỏa tình yêu và lòng tốt! 💝
             </Text>
           </View>
         </ScrollView>

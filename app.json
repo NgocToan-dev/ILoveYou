@@ -36,9 +36,7 @@
       "expo-localization"
     ],
     "extra": {
-      "eas": {
-        "projectId": "your-project-id"
-      }
+      "eas": {}
     }
   }
 }

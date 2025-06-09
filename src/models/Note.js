@@ -1,4 +1,4 @@
-import { NOTE_TYPES, NOTE_CATEGORIES } from '../services/firebase/notes';
+import { NOTE_TYPES, NOTE_CATEGORIES } from '../constants/notes';
 import { formatDateString, toDate } from '../utils/dateUtils';
 
 export class Note {

@@ -1,4 +1,4 @@
-import { REMINDER_TYPES, REMINDER_PRIORITIES, REMINDER_CATEGORIES, RECURRING_TYPES } from '../services/firebase/reminders';
+import { REMINDER_TYPES, REMINDER_PRIORITIES, REMINDER_CATEGORIES, RECURRING_TYPES } from '../constants/reminders';
 import { formatDateString, toDate } from '../utils/dateUtils';
 
 export class Reminder {

@@ -5,6 +5,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AppNavigator } from './src/navigation';
 import { LoveBackground, LoadingIndicator } from './src/components';
 import { AuthProvider } from './src/context/AuthContext';
+import notificationService from './src/services/notifications';
+import reminderNotificationJob from './src/services/notifications/reminderJob';
 import './src/i18n'; // Initialize i18n
 
 // Keep the splash screen visible while we fetch resources
@@ -54,8 +56,29 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
+        console.log('App initializing...');
+        
+        // Initialize notification service
+        console.log('Initializing notification service...');
+        const notificationResult = await notificationService.initialize();
+        
+        if (notificationResult.success) {
+          console.log('✅ Notification service initialized successfully');
+          
+          // Start reminder notification job
+          console.log('Starting reminder notification job...');
+          reminderNotificationJob.start();
+          
+          // Schedule daily summary at 8:00 AM
+          reminderNotificationJob.scheduleDailySummary(8, 0);
+          
+          console.log('✅ Reminder notification job started');
+        } else {
+          console.warn('⚠️ Notification service failed to initialize:', notificationResult.error);
+          // Continue without notifications
+        }
+        
         console.log('App initialized successfully');
-        // Remove the delay - app starts immediately
       } catch (e) {
         console.warn('App initialization error:', e);
       } finally {
@@ -66,6 +89,12 @@ export default function App() {
     }
 
     prepare();
+    
+    // Cleanup function
+    return () => {
+      reminderNotificationJob.stop();
+      notificationService.cleanup();
+    };
   }, []);
 
   if (!appIsReady) {

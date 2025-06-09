@@ -9,8 +9,9 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ToastAndroid,
 } from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "react-native-modal-datetime-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useAuthContext } from "../context/AuthContext";
@@ -26,6 +27,32 @@ import {
 } from "../services/firebase/reminders";
 import { getUserProfile } from "../services/firebase/firestore";
 import { Reminder } from "../models";
+
+// Notification constants for consistent messaging
+const NOTIFICATIONS = {
+  SUCCESS: {
+    FIELD_SAVED: "Đã lưu thay đổi",
+    AUTO_SAVE: "Đang tự động lưu...",
+    VALIDATION_PASSED: "Dữ liệu hợp lệ ✓",
+  },
+  WARNING: {
+    UNSAVED_CHANGES: "Có thay đổi chưa được lưu",
+    TIME_CLOSE: "Thời gian đã chọn gần hiện tại",
+    HIGH_PRIORITY: "Nhắc nhở ưu tiên cao được chọn",
+  },
+  INFO: {
+    FIELD_LIMIT: "Đã đạt giới hạn ký tự",
+    TYPE_CHANGED: "Loại nhắc nhở đã thay đổi",
+    CATEGORY_SELECTED: "Danh mục đã được chọn",
+  },
+};
+
+// Helper function to show toast notifications on Android
+const showToast = (message) => {
+  if (Platform.OS === "android") {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  }
+};
 
 const EditReminderScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -60,9 +87,43 @@ const EditReminderScreen = ({ navigation, route }) => {
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+
+  // New notification states
+  const [lastSaved, setLastSaved] = useState(null);
+  const [validationStatus, setValidationStatus] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
   useEffect(() => {
     loadUserProfile();
   }, [user, reminder]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    const hasChanges =
+      title !== (reminder?.title || "") ||
+      description !== (reminder?.description || "") ||
+      selectedCategory !== (reminder?.category || REMINDER_CATEGORIES.SPECIAL_OCCASIONS) ||
+      selectedPriority !== (reminder?.priority || REMINDER_PRIORITIES.MEDIUM) ||
+      selectedType !== (reminder?.type || REMINDER_TYPES.PERSONAL);
+    
+    setHasUnsavedChanges(hasChanges);
+    
+    // Show notification about unsaved changes
+    if (hasChanges && !submitting) {
+      setValidationStatus(NOTIFICATIONS.WARNING.UNSAVED_CHANGES);
+    } else if (!hasChanges) {
+      setValidationStatus(null);
+    }
+  }, [title, description, selectedCategory, selectedPriority, selectedType, reminder, submitting]);
+
+  // Auto-validation for form fields
+  useEffect(() => {
+    if (title.trim() && selectedDateTime > new Date()) {
+      setValidationStatus(NOTIFICATIONS.SUCCESS.VALIDATION_PASSED);
+      const timer = setTimeout(() => setValidationStatus(null), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [title, selectedDateTime]);
 
   const loadUserProfile = async () => {
     if (!user) return;
@@ -71,9 +132,13 @@ const EditReminderScreen = ({ navigation, route }) => {
     try {
       const profile = await getUserProfile(user.uid);
       setUserProfile(profile);
+      
+      // Notify user about profile loading
+      showToast("Đã tải thông tin người dùng");
     } catch (error) {
       console.error("Error loading user profile:", error);
       Alert.alert("Lỗi", "Không thể tải thông tin người dùng.");
+      showToast("Lỗi khi tải thông tin");
     } finally {
       setLoading(false);
     }
@@ -85,15 +150,18 @@ const EditReminderScreen = ({ navigation, route }) => {
         "Thời gian không hợp lệ",
         "Vui lòng chọn thời gian trong tương lai."
       );
+      setValidationStatus("Thời gian phải trong tương lai");
       return null;
     }
 
+    setValidationStatus(null);
     return selectedDateTime;
   };
 
   const handleUpdateReminder = async () => {
     if (!title.trim()) {
       Alert.alert("Thiếu tiêu đề", "Vui lòng nhập tiêu đề cho nhắc nhở.");
+      setValidationStatus("Cần nhập tiêu đề");
       return;
     }
 
@@ -101,6 +169,10 @@ const EditReminderScreen = ({ navigation, route }) => {
     if (!dueDateTime) {
       return; // Validation failed
     }
+
+    // Show auto-save notification
+    setValidationStatus(NOTIFICATIONS.SUCCESS.AUTO_SAVE);
+    showToast("Đang lưu thay đổi...");
 
     // Check if changing from personal to couple or vice versa
     const isChangingType = selectedType !== reminder?.type;
@@ -116,8 +188,21 @@ const EditReminderScreen = ({ navigation, route }) => {
           selectedType === REMINDER_TYPES.COUPLE ? "Cặp đôi" : "Cá nhân"
         }"?\n\n${typeChangeMessage}`,
         [
-          { text: "Hủy", style: "cancel" },
-          { text: "Xác nhận", onPress: () => performUpdate(dueDateTime) },
+          { 
+            text: "Hủy", 
+            style: "cancel",
+            onPress: () => {
+              setValidationStatus(null);
+              showToast("Đã hủy thay đổi");
+            }
+          },
+          { 
+            text: "Xác nhận", 
+            onPress: () => {
+              showToast("Đang cập nhật loại nhắc nhở...");
+              performUpdate(dueDateTime);
+            }
+          },
         ]
       );
     } else {
@@ -126,6 +211,8 @@ const EditReminderScreen = ({ navigation, route }) => {
   };
   const performUpdate = async (dueDateTime) => {
     setSubmitting(true);
+    setValidationStatus(NOTIFICATIONS.SUCCESS.AUTO_SAVE);
+    
     try {
       // Create updated Reminder model instance
       const updatedReminderModel = new Reminder({
@@ -147,6 +234,8 @@ const EditReminderScreen = ({ navigation, route }) => {
           "Dữ liệu không hợp lệ",
           "Vui lòng kiểm tra lại thông tin nhắc nhở."
         );
+        setValidationStatus("Dữ liệu không hợp lệ");
+        showToast("Vui lòng kiểm tra lại thông tin");
         return;
       }
 
@@ -154,22 +243,57 @@ const EditReminderScreen = ({ navigation, route }) => {
         "Updating reminder with model:",
         updatedReminderModel.toFirestore()
       );
+      
+      showToast("Đang lưu vào cơ sở dữ liệu...");
       await updateReminder(reminder.id, updatedReminderModel.toFirestore());
 
+      // Success notifications
       const categoryInfo = getCategoryDisplayInfo(selectedCategory);
+      const priorityName = getPriorityName(selectedPriority);
+      
+      setLastSaved(new Date());
+      setValidationStatus(null);
+      setHasUnsavedChanges(false);
+      showToast("✓ Đã lưu thành công!");
+      
       Alert.alert(
         "Cập nhật thành công! ⏰",
-        `Đã cập nhật nhắc nhở "${categoryInfo.name}" thành công!`,
+        `Đã cập nhật nhắc nhở "${categoryInfo.name}" với mức độ ưu tiên ${priorityName.toLowerCase()} thành công!\n\n${
+          selectedType === REMINDER_TYPES.COUPLE 
+            ? "💕 Người yêu của bạn sẽ nhận được thông báo về nhắc nhở này." 
+            : "📱 Chỉ bạn sẽ nhận được thông báo cho nhắc nhở này."
+        }`,
         [
           {
             text: "OK",
-            onPress: () => navigation.goBack(),
+            onPress: () => {
+              showToast("Quay lại danh sách nhắc nhở");
+              navigation.goBack();
+            },
           },
         ]
       );
     } catch (error) {
       console.error("Error updating reminder:", error);
-      Alert.alert("Lỗi", `Có lỗi xảy ra: ${error.message || error.toString()}`);
+      setValidationStatus("Lỗi khi cập nhật");
+      showToast("❌ Lỗi khi lưu");
+      
+      // More detailed error messages
+      let errorMessage = "Có lỗi xảy ra khi cập nhật nhắc nhở.";
+      if (error.code === "permission-denied") {
+        errorMessage = "Bạn không có quyền chỉnh sửa nhắc nhở này.";
+      } else if (error.code === "not-found") {
+        errorMessage = "Nhắc nhở không tồn tại hoặc đã bị xóa.";
+      } else if (error.message && error.message.includes("network")) {
+        errorMessage = "Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại.";
+      } else if (error.message) {
+        errorMessage = `Lỗi: ${error.message}`;
+      }
+      
+      Alert.alert("Lỗi cập nhật", errorMessage, [
+        { text: "Thử lại", onPress: () => performUpdate(dueDateTime) },
+        { text: "Hủy", style: "cancel" }
+      ]);
     } finally {
       setSubmitting(false);
     }
@@ -189,15 +313,30 @@ const EditReminderScreen = ({ navigation, route }) => {
         "Hủy chỉnh sửa",
         "Bạn có muốn hủy chỉnh sửa? Các thay đổi sẽ bị mất.",
         [
-          { text: "Tiếp tục chỉnh sửa", style: "cancel" },
+          { 
+            text: "Tiếp tục chỉnh sửa", 
+            style: "cancel",
+            onPress: () => showToast("Tiếp tục chỉnh sửa")
+          },
           {
-            text: "Hủy",
+            text: "Lưu trước khi thoát",
+            onPress: () => {
+              showToast("Đang lưu trước khi thoát...");
+              handleUpdateReminder();
+            }
+          },
+          {
+            text: "Thoát không lưu",
             style: "destructive",
-            onPress: () => navigation.goBack(),
+            onPress: () => {
+              showToast("Đã hủy các thay đổi");
+              navigation.goBack();
+            },
           },
         ]
       );
     } else {
+      showToast("Quay lại");
       navigation.goBack();
     }
   };
@@ -474,7 +613,7 @@ const EditReminderScreen = ({ navigation, route }) => {
           Nhắc nhở vào: {formatDateTime()}
         </Text>
         {/* Date Picker Modal */}
-        <DateTimePickerModal
+        <DateTimePicker
           isVisible={showDatePicker}
           mode="date"
           onConfirm={handleDateConfirm}
@@ -489,7 +628,7 @@ const EditReminderScreen = ({ navigation, route }) => {
           locale="vi"
         />
         {/* Time Picker Modal */}
-        <DateTimePickerModal
+        <DateTimePicker
           isVisible={showTimePicker}
           mode="time"
           onConfirm={handleTimeConfirm}
