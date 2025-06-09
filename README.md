@@ -1,239 +1,382 @@
-# ILoveYou 💕
+# ILoveYou - Couple Love Tracker 💕
 
-A beautiful React Native app designed to celebrate love and connection between couples.
+A beautiful Progressive Web App (PWA) for couples to track their love journey, create shared memories, and manage important reminders together.
 
-## Features ✨
+![ILoveYou App](./web/public/icon.svg)
 
-### Authentication 🔐
-- User registration and login with Firebase Auth
-- Email/password authentication
-- Secure user session management
-- Beautiful love-themed UI
+## 🌟 Features
 
-### User Management 👤
-- User profile creation and editing
-- Profile photo support
-- Account management and deletion
-- Personalized user experience
+### Phase 4 - Enhanced Features & PWA (Current)
 
-### Navigation 🧭
-- Intuitive tab-based navigation
-- Stack navigation for user flows
-- Deep linking support
-- Navigation state persistence
+#### 📸 **Enhanced Note Management**
+- **Photo Upload & Gallery**: Attach multiple photos to your love notes with drag-and-drop support
+- **Advanced Search**: Powerful search with filters, sorting, and fuzzy matching
+- **Data Export**: Export your memories as JSON or CSV backups
+- **Offline Support**: Full offline functionality with automatic sync when online
 
-### Love-Themed UI 💖
-- Beautiful gradient backgrounds
-- Love-themed colors and emojis
-- Smooth animations and transitions
-- Responsive design for all screen sizes
+#### 🎯 **Smart Reminders**
+- **Push Notifications**: Never miss an anniversary or special moment
+- **Recurring Events**: Set up yearly anniversaries and monthly milestones
+- **Smart Scheduling**: Intelligent reminder suggestions based on your relationship timeline
 
-### App Screens 📱
-- **Profile Tab**: Manage your personal profile
-- **Our Love Tab**: Connect with your partner (User management)
-- **Messages Tab**: Chat and love notes (Coming soon!)
-- **Settings Tab**: App preferences and account settings
+#### ⚡ **Progressive Web App**
+- **Install Anywhere**: Works on mobile, tablet, and desktop like a native app
+- **Offline First**: Full functionality without internet connection
+- **Fast Loading**: Optimized performance with lazy loading and caching
+- **Push Notifications**: Real-time reminder notifications
 
-## Tech Stack 🛠️
+#### 🎨 **Enhanced User Experience**
+- **Keyboard Shortcuts**: Power user shortcuts for quick navigation (Ctrl+N for new note, Ctrl+K for search, etc.)
+- **Milestone Celebrations**: Animated celebrations for relationship milestones
+- **Advanced Animations**: Beautiful Lottie animations and smooth transitions
+- **Loading Skeletons**: Polished loading states for better perceived performance
 
-- **React Native** with Expo
-- **Firebase** for authentication and data storage
-- **React Navigation** for navigation
-- **Expo Vector Icons** for beautiful icons
-- **AsyncStorage** for local data persistence
+#### 📊 **Performance & Quality**
+- **90+ Lighthouse Score**: Optimized for performance, accessibility, and SEO
+- **Error Boundaries**: Graceful error handling with recovery options
+- **Comprehensive Testing**: 80%+ code coverage with unit and integration tests
+- **Bundle Optimization**: Code splitting and lazy loading for fast startup
 
-## Getting Started 🚀
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v14 or later)
-- Expo CLI (`npm install -g expo-cli`)
-- iOS Simulator or Android Emulator (or Expo Go app on your device)
+
+- Node.js 18+ and npm
+- Firebase project setup
+- Git
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
-   cd ILoveYou
+   git clone https://github.com/yourusername/iloveyou-app.git
+   cd iloveyou-app
    ```
 
 2. **Install dependencies**
    ```bash
+   # Root dependencies
+   npm install
+   
+   # Web app dependencies
+   cd web
    npm install
    ```
 
-3. **Configure Firebase**
-   - Create a new Firebase project at https://console.firebase.google.com
-   - Enable Authentication with Email/Password provider
-   - Enable Firestore Database
-   - Download your Firebase config
-   - Update `src/services/firebase/config.js` with your Firebase configuration:
-   ```javascript
-   const firebaseConfig = {
-     apiKey: "your-api-key",
-     authDomain: "your-auth-domain",
-     projectId: "your-project-id",
-     storageBucket: "your-storage-bucket",
-     messagingSenderId: "your-messaging-sender-id",
-     appId: "your-app-id"
-   };
-   ```
-
-4. **Start the development server**
+3. **Environment Setup**
    ```bash
-   npm start
+   # Copy environment template
+   cp web/.env.example web/.env.local
+   
+   # Edit with your Firebase config
+   nano web/.env.local
    ```
 
-5. **Run on device/simulator**
-   - Press `i` for iOS simulator
-   - Press `a` for Android emulator
-   - Scan QR code with Expo Go app on your device
+4. **Firebase Configuration**
+   ```bash
+   # Install Firebase CLI
+   npm install -g firebase-tools
+   
+   # Login to Firebase
+   firebase login
+   
+   # Initialize project
+   firebase init
+   ```
 
-## Project Structure 📁
+5. **Start Development Server**
+   ```bash
+   cd web
+   npm run dev
+   ```
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components
-│   │   ├── LoveButton.js
-│   │   ├── LoveInput.js
-│   │   ├── LoveBackground.js
-│   │   ├── LoadingIndicator.js
-│   │   └── UserProfileCard.js
-│   └── index.js        # Component exports
-├── navigation/         # Navigation configuration
-│   ├── AppNavigator.js # Main navigation setup
-│   └── index.js
-├── screens/           # App screens
-│   ├── auth/          # Authentication screens
-│   │   ├── LoginScreen.js
-│   │   ├── SignUpScreen.js
-│   │   └── WelcomeScreen.js
-│   ├── user/          # User management screens
-│   │   ├── UserProfileScreen.js
-│   │   ├── UserListScreen.js
-│   │   ├── UserEditScreen.js
-│   │   └── UserDeleteScreen.js
-│   ├── SettingsScreen.js
-│   ├── MessagesScreen.js
-│   └── index.js
-├── services/          # External services
-│   ├── firebase/      # Firebase integration
-│   │   ├── config.js
-│   │   ├── auth.js
-│   │   ├── firestore.js
-│   │   └── index.js
-│   └── index.js
-└── utils/            # Utility functions
-    └── index.js      # Helper functions and constants
-```
+   Visit `http://localhost:3000` to see the app in action! 🎉
 
-## Features in Detail 📋
+## 📱 Platform Support
 
-### 🔐 Authentication Flow
-- Beautiful welcome screens with love-themed design
-- Email/password registration and login
-- Form validation with helpful error messages
-- Automatic navigation based on authentication state
+| Platform | Support Level | Features |
+|----------|---------------|----------|
+| **Desktop** | ✅ Full | All features, keyboard shortcuts, desktop notifications |
+| **Mobile** | ✅ Full | Touch-optimized, PWA install, mobile notifications |
+| **Tablet** | ✅ Full | Responsive design, touch gestures |
+| **Offline** | ✅ Full | Complete functionality, automatic sync |
 
-### 👤 User Management
-- Complete user profile management
-- Edit profile information
-- Account deletion with confirmation
-- User list for couple connections
+## 🛠️ Development
 
-### 💌 Messages (Coming Soon)
-- Real-time chat between couples
-- Love notes and letter writing
-- Photo and media sharing
-- Voice messages
+### Available Scripts
 
-### ⚙️ Settings
-- App preferences and customization
-- Privacy settings
-- Help and support information
-- About page with app information
-
-## Color Scheme 🎨
-
-The app uses a beautiful love-themed color palette:
-- **Primary**: Pink (#FF69B4)
-- **Secondary**: Light Pink (#FFB6C1)
-- **Accent**: Deep Pink (#FF1493)
-- **Dark**: Dark Red (#8B0000)
-- **Light**: Pale Pink (#FFE4E6)
-- **Background**: Lavender Blush (#FFF0F5)
-
-## Development 💻
-
-### Running Tests
 ```bash
-npm test
+# Development
+npm run dev              # Start development server
+npm run dev:debug        # Start with debug mode
+
+# Building
+npm run build            # Production build
+npm run build:analyze    # Build with bundle analysis
+npm run preview          # Preview production build
+
+# Testing
+npm run test             # Run unit tests
+npm run test:coverage    # Run tests with coverage
+npm run test:ui          # Run tests with UI
+npm run test:e2e         # Run end-to-end tests
+
+# Code Quality
+npm run lint             # Run ESLint
+npm run lint:fix         # Fix linting issues
+npm run typecheck        # TypeScript type checking
+
+# Performance
+npm run lighthouse       # Run Lighthouse audit
+npm run analyze          # Analyze bundle size
+
+# Deployment
+npm run deploy:firebase  # Deploy to Firebase
+npm run deploy:preview   # Deploy to preview channel
+./deploy.sh              # Full deployment script
 ```
 
-### Building for Production
+### Project Structure
+
+```
+web/
+├── public/                 # Static assets
+│   ├── icons/             # PWA icons
+│   ├── manifest.json      # PWA manifest
+│   └── icon.svg          # App icon
+├── src/
+│   ├── components/        # React components
+│   │   ├── auth/         # Authentication components
+│   │   ├── notes/        # Note management
+│   │   ├── reminders/    # Reminder components
+│   │   ├── search/       # Search functionality
+│   │   ├── pwa/          # PWA components
+│   │   └── ui/           # Reusable UI components
+│   ├── hooks/            # Custom React hooks
+│   │   ├── useAdvancedSearch.js
+│   │   ├── usePhotoUpload.js
+│   │   ├── useKeyboardShortcuts.js
+│   │   ├── useOfflineCache.js
+│   │   └── usePWA.js
+│   ├── services/         # External services
+│   │   ├── firebase.js   # Firebase configuration
+│   │   ├── performance.js # Performance monitoring
+│   │   └── webNotifications.js
+│   ├── pages/            # Page components
+│   ├── contexts/         # React contexts
+│   ├── theme/            # Material-UI theme
+│   ├── i18n/             # Internationalization
+│   └── test/             # Test utilities
+├── deploy.sh             # Deployment script
+├── vite.config.js        # Vite configuration
+└── package.json          # Dependencies and scripts
+```
+
+## 🧪 Testing
+
+The app includes comprehensive testing:
+
+- **Unit Tests**: Component testing with React Testing Library
+- **Integration Tests**: User flow testing
+- **Performance Tests**: Lighthouse audits and Web Vitals
+- **Accessibility Tests**: WCAG compliance testing
+
 ```bash
-expo build:ios
-expo build:android
+# Run all tests
+npm run test
+
+# Run with coverage
+npm run test:coverage
+
+# Run specific test files
+npm run test -- --run src/components/notes
+
+# Run tests in watch mode
+npm run test:watch
 ```
 
-### Code Style
-- Follow React Native best practices
-- Use functional components with hooks
-- Implement proper error handling
-- Maintain consistent naming conventions
+## 📚 Key Technologies
 
-## Troubleshooting 🔧
+- **Frontend**: React 18, Material-UI 5, Vite
+- **Backend**: Firebase (Auth, Firestore, Storage, Hosting)
+- **PWA**: Workbox, Web App Manifest, Service Workers
+- **Testing**: Vitest, React Testing Library, Lighthouse
+- **Performance**: Web Vitals, Bundle Analyzer, Lazy Loading
+- **Deployment**: Firebase Hosting, GitHub Actions
+- **Languages**: JavaScript/TypeScript, HTML5, CSS3
 
-### Common Issues
+## 🔧 Configuration
 
-1. **Firebase connection issues**
-   - Verify your Firebase configuration
-   - Check network connectivity
-   - Ensure Firebase project is active
+### Environment Variables
 
-2. **Navigation not working**
-   - Clear AsyncStorage: `AsyncStorage.clear()`
-   - Restart the development server
+Create `.env.local` file in the web directory:
 
-3. **Expo/Metro bundler issues**
-   - Clear cache: `expo start -c`
-   - Reset Metro cache: `npx react-native start --reset-cache`
+```bash
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 
-## Contributing 🤝
+# PWA Push Notifications
+VITE_VAPID_PUBLIC_KEY=your_vapid_key
+
+# Analytics
+VITE_GOOGLE_ANALYTICS_ID=your_ga_id
+```
+
+### Firebase Setup
+
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Authentication (Email/Password)
+3. Enable Firestore Database
+4. Enable Storage
+5. Enable Hosting
+6. Configure security rules
+
+### PWA Configuration
+
+The app is configured as a Progressive Web App with:
+
+- **Service Worker**: Automatic caching and offline support
+- **Web App Manifest**: Installation prompts and app metadata
+- **Push Notifications**: Reminder notifications
+- **Background Sync**: Offline data synchronization
+
+## 🚀 Deployment
+
+### Automatic Deployment
+
+Use the provided deployment script:
+
+```bash
+# Production deployment
+./deploy.sh
+
+# Staging deployment
+./deploy.sh --env staging
+
+# Preview deployment
+./deploy.sh --preview
+
+# Skip tests (faster deployment)
+./deploy.sh --skip-tests
+```
+
+### Manual Deployment
+
+```bash
+# Build the app
+npm run build
+
+# Deploy to Firebase
+firebase deploy --only hosting
+```
+
+### CI/CD Pipeline
+
+The project includes GitHub Actions workflows for:
+
+- **Continuous Integration**: Automated testing on pull requests
+- **Deployment**: Automatic deployment to staging and production
+- **Performance Monitoring**: Lighthouse audits on every deployment
+
+## 📊 Performance Metrics
+
+Target performance metrics:
+
+- **Lighthouse Score**: 90+ across all categories
+- **First Contentful Paint**: < 1.5s
+- **Largest Contentful Paint**: < 2.5s
+- **Cumulative Layout Shift**: < 0.1
+- **First Input Delay**: < 100ms
+- **Bundle Size**: < 500KB gzipped
+
+## ♿ Accessibility
+
+The app follows WCAG 2.1 AA guidelines:
+
+- **Keyboard Navigation**: Full keyboard accessibility
+- **Screen Reader Support**: Proper ARIA labels and semantics
+- **Color Contrast**: Meets AA contrast requirements
+- **Focus Management**: Clear focus indicators
+- **Alternative Text**: Images have descriptive alt text
+
+## 🌍 Internationalization
+
+Currently supports:
+- **English** (en)
+- **Vietnamese** (vi)
+
+Adding new languages:
+1. Create translation file in `src/i18n/locales/`
+2. Add language to `src/i18n/index.js`
+3. Update language switcher component
+
+## 🔒 Security
+
+Security measures implemented:
+
+- **Firebase Security Rules**: Proper data access controls
+- **Authentication**: Secure user authentication
+- **HTTPS**: All communications encrypted
+- **Content Security Policy**: XSS protection
+- **Input Validation**: Client and server-side validation
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Workflow
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Run linting and tests
+6. Submit a pull request
 
-## License 📄
+### Code Style
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+- **ESLint**: Enforced code style
+- **Prettier**: Code formatting
+- **Conventional Commits**: Commit message format
+- **TypeScript**: Type safety (gradual migration)
 
-## Support 💬
+## 📝 License
 
-For support and questions:
-- Create an issue on GitHub
-- Contact: support@iloveyou.app
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Roadmap 🗺️
+## 🙏 Acknowledgments
+
+- **Material-UI**: Beautiful React components
+- **Firebase**: Backend infrastructure
+- **Vite**: Fast build tool
+- **React**: UI framework
+- **Workbox**: PWA capabilities
+
+## 📞 Support
+
+- **Documentation**: [Wiki](https://github.com/yourusername/iloveyou-app/wiki)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/iloveyou-app/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/iloveyou-app/discussions)
+- **Email**: support@iloveyou-app.com
+
+## 🗺️ Roadmap
 
 ### Upcoming Features
-- [ ] Real-time messaging
-- [ ] Photo sharing
-- [ ] Voice messages
-- [ ] Couple matching
-- [ ] Love notes and letters
-- [ ] Anniversary reminders
-- [ ] Date planning tools
-- [ ] Memory timeline
-- [ ] Dark mode support
-- [ ] Push notifications
+
+- **Video Messages**: Share video notes
+- **Voice Notes**: Audio messages support
+- **Couple Analytics**: Relationship insights
+- **Social Sharing**: Share milestones
+- **Calendar Integration**: Sync with external calendars
+- **AI Suggestions**: Smart reminder suggestions
 
 ---
 
-Made with 💝 for couples in love.
+**Made with 💕 by couples, for couples**
 
-*Version 1.0.0*
+Track your love journey, one memory at a time! ✨

@@ -1,0 +1,361 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  CACHE_KEY_PREFIX: 'iloveyou-v1'
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            
+      - name: Install root dependencies
+        run: npm ci
+        
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm ci
+        
+      - name: Run linting
+        working-directory: ./web
+        run: npm run lint
+        
+      - name: Run type checking
+        working-directory: ./web
+        run: npm run typecheck || true  # Allow failure for gradual TypeScript adoption
+        
+      - name: Run unit tests
+        working-directory: ./web
+        run: npm run test:coverage
+        
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./web/coverage/lcov.info
+          flags: web
+          name: web-coverage
+          
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: test
+    
+    strategy:
+      matrix:
+        environment: [staging, production]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ./web
+        run: npm ci
+        
+      - name: Create environment file
+        working-directory: ./web
+        run: |
+          echo "VITE_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" > .env.production
+          echo "VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}" >> .env.production
+          echo "VITE_FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}" >> .env.production
+          echo "VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}" >> .env.production
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" >> .env.production
+          echo "VITE_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}" >> .env.production
+          echo "VITE_VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}" >> .env.production
+          echo "VITE_GOOGLE_ANALYTICS_ID=${{ secrets.GOOGLE_ANALYTICS_ID }}" >> .env.production
+          echo "VITE_BUILD_ENV=${{ matrix.environment }}" >> .env.production
+          
+      - name: Build application
+        working-directory: ./web
+        run: npm run build
+        env:
+          NODE_ENV: production
+          
+      - name: Run bundle analysis
+        working-directory: ./web
+        run: npm run build:analyze || true
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.environment }}
+          path: web/dist/
+          retention-days: 7
+          
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-production
+          path: web/dist/
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install serve
+        run: npm install -g serve
+        
+      - name: Serve application
+        run: serve -s web/dist -l 3000 &
+        
+      - name: Wait for server
+        run: sleep 10
+        
+      - name: Run Lighthouse
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: http://localhost:3000
+          uploadDir: ./lighthouse-reports
+          configPath: ./web/lighthouse.config.js
+          
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: lighthouse-reports
+          path: lighthouse-reports/
+          
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-staging
+          path: web/dist/
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+        
+      - name: Deploy to Firebase Staging
+        working-directory: ./web
+        run: |
+          firebase use staging --token ${{ secrets.FIREBASE_TOKEN }}
+          firebase deploy --only hosting --project staging --token ${{ secrets.FIREBASE_TOKEN }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          
+      - name: Comment deployment URL
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Staging deployment successful!\n\n📱 **Preview**: https://staging-${{ secrets.FIREBASE_PROJECT_ID }}.web.app'
+            })
+            
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, build, lighthouse]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-production
+          path: web/dist/
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+        
+      - name: Deploy to Firebase Production
+        working-directory: ./web
+        run: |
+          firebase use production --token ${{ secrets.FIREBASE_TOKEN }}
+          firebase deploy --only hosting --token ${{ secrets.FIREBASE_TOKEN }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            🚀 **Production Deployment Successful!**
+            
+            **Changes in this release:**
+            ${{ github.event.head_commit.message }}
+            
+            **🔗 Live Application:** https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app
+            
+            **📊 Performance Metrics:**
+            - Build Size: Check artifacts
+            - Lighthouse Score: See reports
+            - Test Coverage: View in Codecov
+            
+            **🔧 Technical Details:**
+            - Commit: ${{ github.sha }}
+            - Build: ${{ github.run_number }}
+            - Environment: Production
+          draft: false
+          prerelease: false
+          
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run npm audit
+        working-directory: ./web
+        run: npm audit --audit-level moderate
+        continue-on-error: true
+        
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          
+  accessibility-test:
+    name: Accessibility Testing
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-production
+          path: web/dist/
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install dependencies
+        run: |
+          npm install -g serve @axe-core/cli
+          
+      - name: Serve application
+        run: serve -s web/dist -l 3000 &
+        
+      - name: Wait for server
+        run: sleep 10
+        
+      - name: Run accessibility tests
+        run: |
+          axe http://localhost:3000 --exit
+          axe http://localhost:3000/login --exit
+          axe http://localhost:3000/notes --exit
+        continue-on-error: true
+        
+  performance-budget:
+    name: Performance Budget
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-production
+          path: web/dist/
+          
+      - name: Check bundle size
+        uses: andresz1/size-limit-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          package_manager: npm
+          directory: web
+          
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+    
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          message: |
+            🚀 **ILoveYou Web App Deployment**
+            
+            **Status:** ${{ job.status }}
+            **Environment:** Production
+            **Commit:** ${{ github.sha }}
+            **Author:** ${{ github.actor }}
+            
+            **🔗 Live App:** https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()

@@ -1,0 +1,194 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "welcome": "Welcome to ILoveYou",
+    "welcomeSubtitle": "Track your love journey together"
+  },
+  "navigation": {
+    "home": "Home",
+    "notes": "Notes",
+    "reminders": "Reminders",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "Love Days Counter",
+    "daysTogethers": "Days Together",
+    "recentNotes": "Recent Notes",
+    "upcomingReminders": "Upcoming Reminders",
+    "milestones": "Milestones"
+  },
+  "notes": {
+    "title": "Love Notes",
+    "addNote": "Add Note",
+    "editNote": "Edit Note",
+    "noteTitle": "Title",
+    "noteContent": "Content",
+    "category": "Category",
+    "tags": "Tags",
+    "photos": {
+      "title": "Photos",
+      "dropHere": "Drop photos here",
+      "dragAndDrop": "Drag and drop photos or click to browse",
+      "supportedFormats": "JPG, PNG, GIF, WebP supported",
+      "maxPhotos": "Maximum {{max}} photos",
+      "uploading": "Uploading",
+      "photoCount": "{{count}} of {{max}} photos"
+    },
+    "noNotes": "No notes yet",
+    "createFirst": "Create your first love note to capture precious memories!"
+  },
+  "categories": {
+    "personal": "Personal",
+    "romantic": "Romantic",
+    "memories": "Memories",
+    "plans": "Plans"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "addReminder": "Add Reminder",
+    "editReminder": "Edit Reminder",
+    "reminderTitle": "Title",
+    "reminderDescription": "Description",
+    "reminderDate": "Date",
+    "reminderTime": "Time",
+    "reminderType": "Type",
+    "anniversary": "Anniversary",
+    "date": "Date",
+    "special": "Special Event",
+    "recurring": "Recurring",
+    "completed": "Completed",
+    "markComplete": "Mark Complete",
+    "markIncomplete": "Mark Incomplete",
+    "noReminders": "No reminders yet",
+    "createFirst": "Create your first reminder to never miss a special moment!",
+    "createdAt": "Created At"
+  },
+  "search": {
+    "results": "Showing {{filtered}} of {{total}} results",
+    "sortBy": "Sort by",
+    "dateCreated": "Date Created",
+    "dateModified": "Date Modified",
+    "title": "Title",
+    "category": "Category",
+    "activeFilters": "Active Filters",
+    "clearAll": "Clear All",
+    "advancedFilters": "Advanced Filters",
+    "dateRange": "Date Range",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "apply": "Apply",
+    "allCategories": "All Categories",
+    "quickTags": "Quick Tags"
+  },
+  "export": {
+    "invalidFileFormat": "Invalid file format",
+    "fileReadError": "Error reading file"
+  },
+  "shortcuts": {
+    "navigation": "Navigation",
+    "actions": "Actions",
+    "interface": "Interface",
+    "utility": "Utility",
+    "goHome": "Go to Home",
+    "goNotes": "Go to Notes",
+    "goReminders": "Go to Reminders",
+    "goProfile": "Go to Profile",
+    "newNote": "New Note",
+    "newReminder": "New Reminder",
+    "search": "Search",
+    "save": "Save",
+    "toggleSidebar": "Toggle Sidebar",
+    "toggleLanguage": "Toggle Language",
+    "closeModal": "Close Modal",
+    "exportData": "Export Data",
+    "showHelp": "Show Help",
+    "title": "Keyboard Shortcuts"
+  },
+  "pwa": {
+    "install": {
+      "install": "Install",
+      "howTo": "How To",
+      "promptTitle": "Install ILoveYou App",
+      "promptDescription": "Get the full experience with our app",
+      "instructionsDescription": "Follow these steps to install the app",
+      "gotIt": "Got It",
+      "tryAgain": "Try Again",
+      "benefits": {
+        "title": "Benefits of Installing",
+        "offline": "Works offline",
+        "faster": "Faster loading",
+        "notifications": "Push notifications",
+        "homeScreen": "Add to home screen"
+      },
+      "ios": {
+        "title": "Install on iOS",
+        "step1": "Tap the Share button",
+        "step2": "Scroll down and tap 'Add to Home Screen'",
+        "step3": "Tap 'Add' to confirm"
+      },
+      "android": {
+        "title": "Install on Android",
+        "step1": "Tap the menu button (three dots)",
+        "step2": "Tap 'Add to Home screen'"
+      },
+      "desktop": {
+        "title": "Install on Desktop",
+        "step1": "Click the install button in the address bar",
+        "step2": "Click 'Install' to confirm"
+      }
+    },
+    "update": {
+      "available": "New version available",
+      "update": "Update"
+    },
+    "offline": {
+      "ready": "App is ready for offline use"
+    }
+  },
+  "milestones": {
+    "congratulations": "Congratulations",
+    "monthlyMessage": "{{months}} months ({{days}} days) of love!",
+    "yearlyMessage": "{{years}} years ({{days}} days) together!",
+    "specialMessage": "{{milestone}} - {{days}} days of love!",
+    "defaultMessage": "{{days}} days of beautiful love!",
+    "daysOfLove": "Days of Love",
+    "share": "Share",
+    "continue": "Continue"
+  },
+  "error": {
+    "title": "Oops! Something went wrong",
+    "description": "We're sorry, but something unexpected happened.",
+    "details": "Error Details",
+    "tryAgain": "Try Again",
+    "reload": "Reload Page",
+    "goHome": "Go Home",
+    "report": "Report Error",
+    "help": "If this problem persists, please contact support.",
+    "errorCopied": "Error details copied to clipboard"
+  }
+}
