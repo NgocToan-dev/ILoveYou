@@ -2,14 +2,24 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, clearIndexedDbPersistence, enableNetwork, disableNetwork } from 'firebase/firestore';
 
+// Firebase configuration - use environment variables in production
 const firebaseConfig = {
-  apiKey: "AIzaSyBzQwGg_Hh9dDVNbkVZR3da0pmKjInpHE0",
-  authDomain: "loveapp-30-5.firebaseapp.com",
-  projectId: "loveapp-30-5",
-  storageBucket: "loveapp-30-5.firebasestorage.app",
-  messagingSenderId: "983282809749",
-  appId: "1:983282809749:android:b03d92d5f2c8fb4c50149c",
+  apiKey: import.meta.env?.VITE_FIREBASE_API_KEY || "AIzaSyBzQwGg_Hh9dDVNbkVZR3da0pmKjInpHE0",
+  authDomain: import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || "loveapp-30-5.firebaseapp.com",
+  projectId: import.meta.env?.VITE_FIREBASE_PROJECT_ID || "loveapp-30-5",
+  storageBucket: import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET || "loveapp-30-5.firebasestorage.app",
+  messagingSenderId: import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "983282809749",
+  appId: import.meta.env?.VITE_FIREBASE_APP_ID || "1:983282809749:android:b03d92d5f2c8fb4c50149c",
 };
+
+// Log configuration in development
+if (import.meta.env?.DEV || (typeof process !== 'undefined' && process.env.NODE_ENV === 'development')) {
+  console.log('Firebase Config:', {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    usingEnvVars: !!import.meta.env?.VITE_FIREBASE_API_KEY
+  });
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

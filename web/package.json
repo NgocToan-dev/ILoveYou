@@ -17,7 +17,10 @@
     "lighthouse": "lighthouse http://localhost:3000 --output=json --output-path=./lighthouse-report.json",
     "pwa:generate-icons": "pwa-asset-generator public/icon-512x512.png public/icons --manifest public/manifest.json",
     "deploy:firebase": "npm run build && firebase deploy --only hosting",
-    "deploy:preview": "npm run build && firebase hosting:channel:deploy preview"
+    "deploy:preview": "npm run build && firebase hosting:channel:deploy preview",
+    "deploy:cloudflare": "bash deploy-cloudflare.sh",
+    "deploy:cf-direct": "npm run build && wrangler pages deploy dist --project-name=iloveyou-web",
+    "test:build": "bash test-build.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

@@ -1,0 +1,11 @@
+name = "iloveyou-web"
+compatibility_date = "2024-01-15"
+
+[env.production]
+account_id = "YOUR_ACCOUNT_ID"
+
+[env.preview]
+account_id = "YOUR_ACCOUNT_ID"
+
+# Pages configuration
+pages_build_output_dir = "web/dist" 
