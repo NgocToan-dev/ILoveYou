@@ -37,9 +37,11 @@ import {
   Favorite,
   Email,
   DateRange,
-  Settings
+  Settings,
+  Notifications
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationSettings from '../components/notifications/NotificationSettings';
 import { getDoc, doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { db } from '../services/firebase';
@@ -66,6 +68,7 @@ const ProfilePage = () => {
   const [saveLoading, setSaveLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -461,9 +464,29 @@ const ProfilePage = () => {
                 </Select>
               </FormControl>
             </Grid>
+
+            {/* Notification Settings Button */}
+            <Grid item xs={12}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<Notifications />}
+                onClick={() => setShowNotificationSettings(!showNotificationSettings)}
+                sx={{ py: 1.5 }}
+              >
+                {showNotificationSettings ? 'Ẩn cài đặt thông báo' : 'Cài đặt thông báo'}
+              </Button>
+            </Grid>
           </Grid>
         </CardContent>
       </Card>
+
+      {/* Notification Settings Section */}
+      {showNotificationSettings && (
+        <Box sx={{ mb: 3 }}>
+          <NotificationSettings />
+        </Box>
+      )}
 
       {/* Account Actions */}
       <Card>

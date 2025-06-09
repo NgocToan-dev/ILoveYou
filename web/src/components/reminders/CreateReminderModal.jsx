@@ -18,16 +18,22 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  Grid
+  Grid,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import {
   Close,
   Person,
   Favorite,
   Notifications as NotificationsIcon,
-  DateRange,
-  Schedule
+  DateRange,  Schedule,
+  NotificationImportant,
+  NotificationsActive,
+  VolumeUp
 } from '@mui/icons-material';
+import { useNotifications } from '../../hooks/useNotifications';
+import NotificationStatusIndicator from '../notifications/NotificationStatusIndicator';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -46,6 +52,8 @@ import {
 const CreateReminderModal = ({ open, onClose, userId, coupleId, defaultType = REMINDER_TYPES.PERSONAL }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { isAvailable: notificationsAvailable } = useNotifications();
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -53,7 +61,11 @@ const CreateReminderModal = ({ open, onClose, userId, coupleId, defaultType = RE
     priority: REMINDER_PRIORITIES.MEDIUM,
     type: defaultType,
     dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-    recurring: RECURRING_TYPES.NONE
+    recurring: RECURRING_TYPES.NONE,
+    // Notification settings
+    enableNotifications: true,
+    notificationTime: 0, // minutes before due date
+    requireInteraction: false
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -94,6 +106,14 @@ const CreateReminderModal = ({ open, onClose, userId, coupleId, defaultType = RE
         dueDate: formData.dueDate,
         recurring: formData.recurring,
         userId: userId,
+        // Notification settings
+        notificationSettings: {
+          enabled: formData.enableNotifications && notificationsAvailable,
+          reminderTime: formData.notificationTime,
+          fcmEnabled: notificationsAvailable,
+          webNotificationEnabled: true,
+          requireInteraction: formData.requireInteraction
+        }
       };
 
       if (formData.type === REMINDER_TYPES.COUPLE) {
@@ -123,7 +143,10 @@ const CreateReminderModal = ({ open, onClose, userId, coupleId, defaultType = RE
       priority: REMINDER_PRIORITIES.MEDIUM,
       type: defaultType,
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      recurring: RECURRING_TYPES.NONE
+      recurring: RECURRING_TYPES.NONE,
+      enableNotifications: true,
+      notificationTime: 0,
+      requireInteraction: false
     });
     setError('');
     onClose();
@@ -313,6 +336,103 @@ const CreateReminderModal = ({ open, onClose, userId, coupleId, defaultType = RE
                 </FormControl>
               </Grid>
             </Grid>
+
+            {/* Notification Settings */}
+            <Box sx={{
+              p: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 1,
+              backgroundColor: notificationsAvailable ? theme.palette.success.light : theme.palette.warning.light,
+              opacity: notificationsAvailable ? 1 : 0.7
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <NotificationImportant />
+                  Cài đặt thông báo
+                </Typography>
+                <NotificationStatusIndicator variant="chip" size="small" />
+              </Box>
+
+              {!notificationsAvailable && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  Thông báo chưa được bật. Nhắc nhở sẽ chỉ hiển thị khi bạn mở ứng dụng.
+                </Alert>
+              )}
+
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControl component="fieldset" disabled={!notificationsAvailable}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <ToggleButtonGroup
+                        value={formData.enableNotifications}
+                        exclusive
+                        onChange={(e, value) => value !== null && handleInputChange('enableNotifications', value)}
+                        size="small"
+                      >
+                        <ToggleButton value={true}>
+                          <NotificationsIcon sx={{ mr: 1, fontSize: 16 }} />
+                          Bật thông báo
+                        </ToggleButton>
+                        <ToggleButton value={false}>
+                          Chỉ trong ứng dụng
+                        </ToggleButton>
+                      </ToggleButtonGroup>
+                    </Box>
+                  </FormControl>
+                </Grid>
+
+                {formData.enableNotifications && notificationsAvailable && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Thời gian thông báo</InputLabel>
+                        <Select
+                          value={formData.notificationTime}
+                          label="Thời gian thông báo"
+                          onChange={(e) => handleInputChange('notificationTime', e.target.value)}
+                        >
+                          <MenuItem value={0}>Đúng giờ</MenuItem>
+                          <MenuItem value={5}>5 phút trước</MenuItem>
+                          <MenuItem value={10}>10 phút trước</MenuItem>
+                          <MenuItem value={15}>15 phút trước</MenuItem>
+                          <MenuItem value={30}>30 phút trước</MenuItem>
+                          <MenuItem value={60}>1 giờ trước</MenuItem>
+                          <MenuItem value={120}>2 giờ trước</MenuItem>
+                          <MenuItem value={1440}>1 ngày trước</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <FormControl component="fieldset">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ToggleButtonGroup
+                            value={formData.requireInteraction}
+                            exclusive
+                            onChange={(e, value) => value !== null && handleInputChange('requireInteraction', value)}
+                            size="small"
+                          >
+                            <ToggleButton value={false}>
+                              <VolumeUp sx={{ mr: 1, fontSize: 16 }} />
+                              Thường
+                            </ToggleButton>                            <ToggleButton value={true}>
+                              <NotificationsActive sx={{ mr: 1, fontSize: 16 }} />
+                              Quan trọng
+                            </ToggleButton>
+                          </ToggleButtonGroup>
+                        </Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                          {formData.requireInteraction
+                            ? 'Thông báo sẽ rung và yêu cầu tương tác'
+                            : 'Thông báo thường với âm thanh nhẹ'
+                          }
+                        </Typography>
+                      </FormControl>
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+            </Box>
 
             {/* Preview */}
             <Box sx={{ 

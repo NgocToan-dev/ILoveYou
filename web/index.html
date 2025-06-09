@@ -4,12 +4,50 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/heart.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#E91E63" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ILoveYou" />
+    
+    <!-- App Information -->
     <title>ILoveYou - Couples App</title>
-    <meta name="description" content="A beautiful couples app to strengthen your relationship" />
+    <meta name="description" content="A beautiful couples app to strengthen your relationship with notes, reminders, and love tracking" />
+    <meta name="keywords" content="couples, love, relationship, notes, reminders, tracking, romance" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="ILoveYou - Couples App" />
+    <meta property="og:description" content="A beautiful couples app to strengthen your relationship" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-72x72.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
+    
+    <!-- Notification Support -->
+    <meta name="notification-support" content="true" />
+    <meta name="push-messaging" content="enabled" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="./src//main.jsx"></script>
+    
+    <!-- Service Worker Registration Script -->
+    <script>
+      // Basic Service Worker registration fallback
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          // The main app will handle detailed SW registration
+          // This is just a fallback for edge cases
+          navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('SW registered via fallback'))
+            .catch(() => console.log('SW fallback registration failed'));
+        });
+      }
+    </script>
   </body>
 </html>

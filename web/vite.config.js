@@ -12,56 +12,123 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      srcDir: 'public',
+      filename: 'sw.js',
+      strategies: 'injectManifest',
+      injectManifest: {
+        swSrc: 'public/sw.js',
+        swDest: 'dist/sw.js',
+        globDirectory: 'dist',
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        maximumFileSizeToCacheInBytes: 3000000,
+      },
       manifest: {
         name: 'ILoveYou - Couple Love Tracker',
         short_name: 'ILoveYou',
-        description: 'Track your love days, create notes and reminders for couples',
+        description: 'Track your love days, create notes and reminders for couples with smart notifications',
         theme_color: '#e91e63',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        lang: 'vi',
+        dir: 'ltr',
+        categories: ['lifestyle', 'social', 'productivity'],
+        // Enhanced PWA capabilities
+        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
+        // Notification support
+        permissions: ['notifications'],
+        // App shortcuts for quick access
+        shortcuts: [
+          {
+            name: 'Tạo nhắc nhở',
+            short_name: 'Nhắc nhở',
+            description: 'Tạo nhắc nhở tình yêu mới',
+            url: '/reminders?action=create',
+            icons: [
+              {
+                src: 'icons/icon-192x192.png',
+                sizes: '192x192',
+                type: 'image/png'
+              }
+            ]
+          },
+          {
+            name: 'Viết ghi chú',
+            short_name: 'Ghi chú',
+            description: 'Viết ghi chú tình yêu mới',
+            url: '/notes?action=create',
+            icons: [
+              {
+                src: 'icons/icon-192x192.png',
+                sizes: '192x192',
+                type: 'image/png'
+              }
+            ]
+          },
+          {
+            name: 'Ngày bình yên',
+            short_name: 'Peaceful Days',
+            description: 'Xem những ngày bình yên',
+            url: '/?view=peaceful-days',
+            icons: [
+              {
+                src: 'icons/icon-192x192.png',
+                sizes: '192x192',
+                type: 'image/png'
+              }
+            ]
+          }
+        ],
         icons: [
           {
             src: 'icons/icon-72x72.png',
             sizes: '72x72',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'icons/icon-96x96.png',
             sizes: '96x96',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'icons/icon-128x128.png',
             sizes: '128x128',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'icons/icon-144x144.png',
             sizes: '144x144',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'icons/icon-152x152.png',
             sizes: '152x152',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'icons/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: 'icons/icon-384x384.png',
             sizes: '384x384',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'icons/icon-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },
@@ -88,6 +155,18 @@ export default defineConfig({
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fcm\.googleapis\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'fcm-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 12 // 12 hours
               }
             }
           }

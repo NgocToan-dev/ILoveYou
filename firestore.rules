@@ -4,6 +4,11 @@ service cloud.firestore {
     // Users collection - users can read/write their own data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow FCM token updates
+      allow update: if request.auth != null &&
+        request.auth.uid == userId &&
+        request.writeFields.hasOnly(['fcmToken', 'fcmTokenUpdated', 'notificationPreferences']);
     }
     
     // Peaceful Days collection - allow access to couple members
@@ -78,29 +83,43 @@ service cloud.firestore {
       allow update: if request.auth != null && 
         resource.data.userId == request.auth.uid &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['authorName', 'updatedAt']);
-    }      // Reminders collection
+    }
+    
+    // Reminders collection
     match /reminders/{reminderId} {
       // Allow creation by authenticated users
-      allow create: if request.auth != null && 
-        request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && (
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.creatorId == request.auth.uid
+      );
       
       // Personal reminders - only the owner can access
-      allow read, write: if request.auth != null && 
-        resource.data.type == 'personal' && 
-        resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null &&
+        resource.data.type == 'personal' && (
+          resource.data.userId == request.auth.uid ||
+          resource.data.creatorId == request.auth.uid
+        );
       
       // Couple reminders - couple members can access
-      allow read, write: if request.auth != null && 
-        resource.data.type == 'couple' && 
+      allow read, write: if request.auth != null &&
+        resource.data.type == 'couple' &&
         resource.data.coupleId != null && (
           resource.data.userId == request.auth.uid ||
+          resource.data.creatorId == request.auth.uid ||
           (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == resource.data.coupleId)
         );
-        // Allow author to update their authorName in their own reminders
-      allow update: if request.auth != null && 
-        resource.data.userId == request.auth.uid &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['authorName', 'updatedAt']);
+        
+      // Allow notification status updates and user updates
+      allow update: if request.auth != null && (
+        // User updating their own reminder
+        (resource.data.userId == request.auth.uid || resource.data.creatorId == request.auth.uid) ||
+        // Allow notification field updates (for Firebase Functions via server-side calls)
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'notificationSent', 'lastNotificationSent', 'notificationAttempts',
+          'lastNotificationError', 'completed', 'completedAt', 'updatedAt'
+        ])
+      );
     }
     
     // Legacy collections (if they exist)
