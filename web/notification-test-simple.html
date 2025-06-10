@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Notification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            background: #e91e63;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #c2185b;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f0f0f0;
+            color: #333;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🔔 Test Thông Báo Đơn Giản</h1>
+    
+    <div id="status" class="status">
+        Sẵn sàng test thông báo
+    </div>
+    
+    <button onclick="requestPermission()">Yêu cầu quyền thông báo</button>
+    <button onclick="testNotification()">Test thông báo</button>
+    
+    <script>
+        function updateStatus(message, type = '') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+        
+        function requestPermission() {
+            console.log('Requesting notification permission...');
+            
+            if (!('Notification' in window)) {
+                updateStatus('Trình duyệt không hỗ trợ thông báo', 'error');
+                return;
+            }
+            
+            Notification.requestPermission().then(function(permission) {
+                console.log('Permission result:', permission);
+                if (permission === 'granted') {
+                    updateStatus('Đã cấp quyền thông báo! ✓', 'success');
+                } else if (permission === 'denied') {
+                    updateStatus('Quyền thông báo bị từ chối', 'error');
+                } else {
+                    updateStatus('Quyền thông báo: ' + permission, 'error');
+                }
+            }).catch(function(error) {
+                console.error('Error requesting permission:', error);
+                updateStatus('Lỗi yêu cầu quyền: ' + error.message, 'error');
+            });
+        }
+        
+        function testNotification() {
+            console.log('Testing notification...');
+            console.log('Current permission:', Notification.permission);
+            
+            if (!('Notification' in window)) {
+                updateStatus('Trình duyệt không hỗ trợ thông báo', 'error');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                try {
+                    console.log('Creating notification...');
+                    const notification = new Notification('Test thành công! 🎉', {
+                        body: 'Thông báo đã hoạt động bình thường!',
+                        tag: 'simple-test'
+                    });
+                    
+                    notification.onshow = function() {
+                        console.log('Notification shown successfully');
+                        updateStatus('Thông báo đã hiển thị thành công! ✓', 'success');
+                    };
+                    
+                    notification.onerror = function(error) {
+                        console.error('Notification error:', error);
+                        updateStatus('Lỗi hiển thị thông báo: ' + error, 'error');
+                    };
+                    
+                    notification.onclick = function() {
+                        console.log('Notification clicked');
+                        window.focus();
+                        this.close();
+                    };
+                    
+                    updateStatus('Đã tạo thông báo...', 'success');
+                    
+                } catch (error) {
+                    console.error('Error creating notification:', error);
+                    updateStatus('Lỗi tạo thông báo: ' + error.message, 'error');
+                }
+            } else if (Notification.permission === 'denied') {
+                updateStatus('Quyền thông báo bị từ chối. Vui lòng bật trong cài đặt trình duyệt', 'error');
+            } else {
+                updateStatus('Cần yêu cầu quyền thông báo trước', 'error');
+            }
+        }
+        
+        // Check support on load
+        window.onload = function() {
+            console.log('=== Notification Test Debug ===');
+            console.log('Notification support:', 'Notification' in window);
+            console.log('Current permission:', Notification.permission);
+            console.log('User agent:', navigator.userAgent);
+            
+            if ('Notification' in window) {
+                updateStatus('Trình duyệt hỗ trợ thông báo. Permission: ' + Notification.permission);
+            } else {
+                updateStatus('Trình duyệt KHÔNG hỗ trợ thông báo', 'error');
+            }
+        };
+    </script>
+</body>
+</html> 

@@ -262,6 +262,16 @@ export const useNotifications = () => {
     };
   }, [permission, supported, fcmSupported, serviceWorkerRegistered, token, isAvailable, isFCMAvailable, loading, error]);
 
+  // Send reminder from server
+  const sendReminderFromServer = useCallback(async (reminder) => {
+    try {
+      return await webNotificationsService.sendReminderFromServer(reminder);
+    } catch (err) {
+      console.error('Error sending reminder from server:', err);
+      return { success: false, error: err.message };
+    }
+  }, []);
+
   return {
     // Status
     permission,
@@ -298,7 +308,10 @@ export const useNotifications = () => {
     onAnalyticsEvent: (handler) => webNotificationsService.on('analytics_event', handler),
     offReminderComplete: (handler) => webNotificationsService.off('reminder_complete', handler),
     offReminderSnooze: (handler) => webNotificationsService.off('reminder_snooze', handler),
-    offAnalyticsEvent: (handler) => webNotificationsService.off('analytics_event', handler)
+    offAnalyticsEvent: (handler) => webNotificationsService.off('analytics_event', handler),
+    
+    // New method
+    sendReminderFromServer
   };
 };
 

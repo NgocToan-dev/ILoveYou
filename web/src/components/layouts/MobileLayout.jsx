@@ -22,6 +22,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../navigation/BottomNavigation';
+import NotificationBell from '../notifications/NotificationBell';
+import NotificationIntegration from '../notifications/NotificationIntegration';
 import { useAuth } from '../../contexts/AuthContext';
 
 const MobileLayout = ({ children }) => {
@@ -81,6 +83,8 @@ const MobileLayout = ({ children }) => {
           >
             ILoveYou ❤️
           </Typography>
+
+          <NotificationBell />
         </Toolbar>
       </AppBar>
 
@@ -189,6 +193,9 @@ const MobileLayout = ({ children }) => {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
+
+      {/* Notification Integration */}
+      <NotificationIntegration />
     </Box>
   );
 };

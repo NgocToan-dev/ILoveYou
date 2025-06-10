@@ -1,6 +1,6 @@
 // Enhanced Web Notifications Service with FCM and Service Worker Support
 // Phase 1: Service Worker Foundation
-import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
+import { getToken, onMessage, isSupported } from 'firebase/messaging';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { NOTIFICATION_TEMPLATES } from '@shared/services/notifications/types';
@@ -16,6 +16,7 @@ class EnhancedWebNotificationsService {
     this.serviceWorkerRegistration = null;
     this.fcmSupported = false;
     this.messageHandlers = new Map();
+    this.notificationCallback = null; // Callback để thêm notification vào context
     this.init();
   }
 
@@ -42,18 +43,14 @@ class EnhancedWebNotificationsService {
   }
   async initializeServiceWorker() {
     try {
-      if ('serviceWorker' in navigator) {        // Register main service worker (Workbox generated)
-        this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js', {
+      if ('serviceWorker' in navigator) {
+        // Register Firebase messaging service worker as primary for FCM
+        this.serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
           scope: '/',
           updateViaCache: 'none'
         });
         
-        // Also register Firebase messaging service worker
-        await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/firebase-cloud-messaging-push-scope'
-        });
-        
-        console.log('Service Workers registered:', this.serviceWorkerRegistration);
+        console.log('Firebase Messaging Service Worker registered:', this.serviceWorkerRegistration);
         
         // Force update service worker if needed
         if (this.serviceWorkerRegistration.waiting) {
@@ -89,6 +86,17 @@ class EnhancedWebNotificationsService {
     }
 
     try {
+      // Đợi Firebase app sẵn sàng trước khi khởi tạo messaging
+      await new Promise(resolve => {
+        if (typeof window !== 'undefined' && window.firebase) {
+          resolve();
+        } else {
+          // Retry after a short delay
+          setTimeout(resolve, 1000);
+        }
+      });
+
+      const { getMessaging } = await import('firebase/messaging');
       this.messaging = getMessaging();
       
       // Get FCM token if we have permission
@@ -96,11 +104,13 @@ class EnhancedWebNotificationsService {
         await this.refreshFCMToken();
       }
       
-      // Handle foreground messages
+      // Handle foreground messages - COMMENTED OUT để notifications hiển thị ở desktop
+      /*
       onMessage(this.messaging, (payload) => {
         console.log('Foreground message received:', payload);
         this.handleForegroundMessage(payload);
       });
+      */
       
     } catch (error) {
       console.error('FCM initialization failed:', error);
@@ -154,6 +164,11 @@ class EnhancedWebNotificationsService {
     }
   }
 
+  // Set notification callback for adding to context
+  setNotificationCallback(callback) {
+    this.notificationCallback = callback;
+  }
+
   notifyHandlers(eventType, data) {
     if (this.messageHandlers.has(eventType)) {
       this.messageHandlers.get(eventType).forEach(handler => {
@@ -200,30 +215,45 @@ class EnhancedWebNotificationsService {
 
   async refreshFCMToken() {
     if (!this.fcmSupported || !this.messaging) {
+      console.log('FCM not supported or messaging not initialized');
       return null;
     }
 
     try {
-      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-      if (!vapidKey) {
-        console.warn('VAPID key not configured - FCM will use basic notifications');
-        return null;
-      }      this.fcmToken = await getToken(this.messaging, {
-        vapidKey: vapidKey,
-        serviceWorkerRegistration: await navigator.serviceWorker.getRegistration('/firebase-cloud-messaging-push-scope')
+      // Use VAPID key for FCM token generation
+      const vapidKey = 'BK7ULrATQ3qHjRl1tLgcwD5zrytEqDnt63_tJiCzyQy3lp6BFna-EUlI8Y47A3978oVPd9xQSfRvAFKhyUAViqM';
+      
+      const token = await getToken(this.messaging, { 
+        vapidKey,
+        serviceWorkerRegistration: this.serviceWorkerRegistration 
       });
       
-      if (this.fcmToken) {
-        console.log('FCM token obtained:', this.fcmToken.substring(0, 20) + '...');
-        await this.saveTokenToFirestore(this.fcmToken);
-        return this.fcmToken;
+      if (token) {
+        console.log('FCM Token generated:', token);
+        this.fcmToken = token;
+        
+        // Save token to Firestore
+        await this.saveTokenToFirestore(token);
+        
+        // Update token via Firebase Functions
+        try {
+          const result = await updateFCMTokenFunction(token);
+          if (result.success) {
+            console.log('✅ FCM token updated via Firebase Functions');
+          } else {
+            console.warn('⚠️ Failed to update FCM token via Functions:', result.error);
+          }
+        } catch (error) {
+          console.warn('⚠️ Error updating FCM token via Functions:', error);
+        }
+        
+        return token;
       } else {
-        console.warn('No FCM token available');
+        console.log('No FCM token available');
         return null;
       }
-      
     } catch (error) {
-      console.error('Error getting FCM token:', error);
+      console.error('Error refreshing FCM token:', error);
       return null;
     }
   }
@@ -339,7 +369,49 @@ class EnhancedWebNotificationsService {
     }
 
     try {
-      const notification = new Notification(title, {
+      // Option 1: Use Service Worker if available (supports actions)
+      if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+        const notificationOptions = {
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/icon-72x72.png',
+          tag: 'iloveyou-notification',
+          requireInteraction: false,
+          silent: false,
+          vibrate: [200, 100, 200],
+          ...options
+        };
+
+        await this.serviceWorkerRegistration.showNotification(title, notificationOptions);
+        console.log('Notification shown via Service Worker with actions support');
+        return { success: true, type: 'service-worker' };
+      }
+
+      // Option 2: Try to get ready service worker
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          if (registration && registration.active) {
+            const notificationOptions = {
+              icon: '/icons/icon-192x192.png',
+              badge: '/icons/icon-72x72.png',
+              tag: 'iloveyou-notification',
+              requireInteraction: false,
+              silent: false,
+              vibrate: [200, 100, 200],
+              ...options
+            };
+
+            await registration.showNotification(title, notificationOptions);
+            console.log('Notification shown via ready Service Worker with actions support');
+            return { success: true, type: 'service-worker-ready' };
+          }
+        } catch (swError) {
+          console.warn('Service Worker not available, falling back to basic notification:', swError);
+        }
+      }
+
+      // Option 3: Fallback to basic Notification API (no actions support)
+      const basicOptions = {
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         tag: 'iloveyou-notification',
@@ -347,7 +419,12 @@ class EnhancedWebNotificationsService {
         silent: false,
         vibrate: [200, 100, 200],
         ...options
-      });
+      };
+
+      // Remove actions for basic notification API
+      delete basicOptions.actions;
+
+      const notification = new Notification(title, basicOptions);
 
       // Auto close after 10 seconds unless requireInteraction is true
       if (!options.requireInteraction) {
@@ -364,7 +441,8 @@ class EnhancedWebNotificationsService {
         }
       };
 
-      return { success: true, notification };
+      console.log('Notification shown via basic API (no actions)');
+      return { success: true, notification, type: 'basic' };
     } catch (error) {
       console.error('Error showing notification:', error);
       return { success: false, error: error.message };
@@ -402,6 +480,26 @@ class EnhancedWebNotificationsService {
       vibrate: [200, 100, 200],
       ...options
     };
+
+    // Add notification to context if callback is set
+    if (this.notificationCallback) {
+      this.notificationCallback({
+        title,
+        body,
+        type: 'reminder',
+        data: {
+          reminderId: reminder.id,
+          reminder
+        },
+        actionUrl: `/reminders/${reminder.id}`
+      });
+    }
+
+    console.log(`📨 Showing reminder notification: ${title}`, {
+      reminderId: reminder.id,
+      hasServiceWorker: !!this.serviceWorkerRegistration,
+      hasActions: !!notificationOptions.actions?.length
+    });
 
     return await this.showNotification(title, notificationOptions);
   }
@@ -485,6 +583,43 @@ class EnhancedWebNotificationsService {
       }
     } catch (error) {
       console.error('Error testing FCM notification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Send reminder notification from server
+  async sendReminderFromServer(reminder) {
+    try {
+      if (!this.fcmToken) {
+        console.warn('No FCM token available for server notification');
+        return { success: false, error: 'No FCM token available' };
+      }
+
+      // Import Firebase Functions
+      const { getFunctions, httpsCallable } = await import('firebase/functions');
+      const { app } = await import('./firebase');
+      
+      const functions = getFunctions(app, 'asia-southeast1'); // Singapore region
+      const sendReminderNotification = httpsCallable(functions, 'sendReminderNotification');
+      
+      console.log('Sending reminder notification from server:', reminder.title);
+      const result = await sendReminderNotification({ 
+        fcmToken: this.fcmToken,
+        language: this.language,
+        reminder: {
+          id: reminder.id,
+          title: reminder.title,
+          description: reminder.description || '',
+          priority: reminder.priority || 'medium',
+          type: 'reminder'
+        }
+      });
+      
+      console.log('Reminder notification sent from server:', result.data);
+      return { success: true, messageId: result.data?.messageId };
+      
+    } catch (error) {
+      console.error('Error sending reminder from server:', error);
       return { success: false, error: error.message };
     }
   }

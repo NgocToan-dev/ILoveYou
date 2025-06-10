@@ -4,6 +4,8 @@ import { Language, Logout } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import SidebarNavigation, { DRAWER_WIDTH } from '../navigation/SidebarNavigation';
+import NotificationBell from '../notifications/NotificationBell';
+import NotificationIntegration from '../notifications/NotificationIntegration';
 import { useAuth } from '../../contexts/AuthContext';
 
 const DesktopLayout = ({ children }) => {
@@ -68,6 +70,8 @@ const DesktopLayout = ({ children }) => {
 
             {/* Top Bar Actions */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <NotificationBell />
+              
               <Tooltip title={i18n.language === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}>
                 <IconButton onClick={toggleLanguage} color="inherit">
                   <Language />
@@ -94,6 +98,9 @@ const DesktopLayout = ({ children }) => {
         >
           {children}
         </Box>
+
+        {/* Notification Integration */}
+        <NotificationIntegration />
       </Box>
     </Box>
   );

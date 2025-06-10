@@ -26,6 +26,12 @@ const {
   sendCoupleReminderNotification,
 } = require('./notifications/fcmManager');
 
+const {
+  onReminderCreated,
+  onReminderUpdated,
+  cleanupOldNotifications,
+} = require('./notifications/notificationTriggers');
+
 // Export all functions
 module.exports = {
   // Scheduled functions
@@ -33,6 +39,7 @@ module.exports = {
   cleanupOldReminders,
   checkPeacefulDaysMilestones,
   handleRecurringReminders,
+  cleanupOldNotifications,
   
   // FCM token management
   updateFCMToken,
@@ -41,4 +48,8 @@ module.exports = {
   sendTestNotification,
   sendReminderNotification,
   sendCoupleReminderNotification,
+  
+  // Firestore triggers
+  onReminderCreated,
+  onReminderUpdated,
 }; 

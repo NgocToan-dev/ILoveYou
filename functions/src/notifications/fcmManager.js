@@ -2,6 +2,18 @@ const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 
+// CORS configuration for web testing
+const corsOptions = {
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'https://anhvacun.pages.dev',
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }
+};
+
 // Vietnamese notification templates for couples
 const NOTIFICATION_TEMPLATES = {
   reminder: {
@@ -424,7 +436,7 @@ class FCMManager {
 }
 
 // Export HTTP callable functions
-const updateFCMToken = onCall(async (request) => {
+const updateFCMToken = onCall(corsOptions, async (request) => {
   const { token } = request.data;
   const userId = request.auth?.uid;
   
@@ -453,7 +465,7 @@ const updateFCMToken = onCall(async (request) => {
   }
 });
 
-const sendTestNotification = onCall(async (request) => {
+const sendTestNotification = onCall(corsOptions, async (request) => {
   const { language = 'vi' } = request.data;
   const userId = request.auth?.uid;
   
@@ -516,12 +528,80 @@ const sendTestNotification = onCall(async (request) => {
   }
 });
 
-const sendReminderNotification = onCall(async (request) => {
-  const { reminderId, language = 'vi' } = request.data;
+const sendReminderNotification = onCall(corsOptions, async (request) => {
+  const { reminderId, language = 'vi', fcmToken, reminder } = request.data;
   const userId = request.auth?.uid;
   
+  // Option 1: Direct FCM token (for web testing)
+  if (fcmToken && reminder) {
+    try {
+      // Prepare notification for direct FCM token
+      const title = language === 'vi' ? '💕 Nhắc nhở từ ILoveYou' : '💕 Reminder from ILoveYou';
+      const body = language === 'vi' 
+        ? `🔔 Nhắc nhở: ${reminder.title}`
+        : `🔔 Reminder: ${reminder.title}`;
+
+      const message = {
+        token: fcmToken,
+        notification: { title, body },
+        data: {
+          type: 'reminder',
+          reminderId: reminder.id || '',
+          title: reminder.title,
+          description: reminder.description || '',
+          priority: reminder.priority || 'medium',
+          language,
+          timestamp: Date.now().toString(),
+        },
+        webpush: {
+          headers: {
+            Urgency: reminder.priority === 'high' ? 'high' : 'normal',
+          },
+          notification: {
+            title,
+            body,
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-72x72.png',
+            tag: `reminder-${reminder.id || Date.now()}`,
+            requireInteraction: reminder.priority === 'high',
+            actions: [
+              {
+                action: 'mark-complete',
+                title: language === 'vi' ? '✅ Hoàn thành' : '✅ Complete'
+              },
+              {
+                action: 'snooze',
+                title: language === 'vi' ? '⏰ Nhắc lại' : '⏰ Snooze'
+              }
+            ],
+          },
+        },
+      };
+
+      const response = await getMessaging().send(message);
+      console.log('Direct reminder notification sent successfully:', response);
+
+      return { 
+        success: true, 
+        messageId: response,
+        reminderId: reminder.id,
+        timestamp: Date.now(),
+      };
+      
+    } catch (error) {
+      console.error('Error sending direct reminder notification:', error);
+      
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+      
+      throw new HttpsError('internal', 'Failed to send direct reminder notification');
+    }
+  }
+  
+  // Option 2: Traditional authentication-based approach
   if (!userId) {
-    throw new HttpsError('unauthenticated', 'User must be authenticated');
+    throw new HttpsError('unauthenticated', 'User must be authenticated or provide FCM token');
   }
   
   if (!reminderId) {
@@ -539,10 +619,10 @@ const sendReminderNotification = onCall(async (request) => {
       throw new HttpsError('not-found', 'Reminder not found');
     }
 
-    const reminder = { id: reminderDoc.id, ...reminderDoc.data() };
+    const reminderData = { id: reminderDoc.id, ...reminderDoc.data() };
     
     // Check if user has permission
-    if (reminder.userId !== userId && reminder.creatorId !== userId) {
+    if (reminderData.userId !== userId && reminderData.creatorId !== userId) {
       throw new HttpsError('permission-denied', 'No permission to send this reminder');
     }
 
@@ -557,25 +637,25 @@ const sendReminderNotification = onCall(async (request) => {
     }
 
     const userData = userDoc.data();
-    const fcmToken = userData?.fcmToken;
+    const userFcmToken = userData?.fcmToken;
     
-    if (!fcmToken) {
+    if (!userFcmToken) {
       throw new HttpsError('failed-precondition', 'No FCM token available');
     }
 
     // Prepare notification
     const title = language === 'vi' ? '💕 Nhắc nhở yêu thương' : '💕 Love Reminder';
     const body = language === 'vi' 
-      ? `Đừng quên: ${reminder.title}`
-      : `Don't forget: ${reminder.title}`;
+      ? `Đừng quên: ${reminderData.title}`
+      : `Don't forget: ${reminderData.title}`;
 
     const message = {
-      token: fcmToken,
+      token: userFcmToken,
       notification: { title, body },
       data: {
         type: 'reminder',
-        reminderId: reminder.id,
-        priority: reminder.priority || 'medium',
+        reminderId: reminderData.id,
+        priority: reminderData.priority || 'medium',
         language,
       },
     };
@@ -587,7 +667,7 @@ const sendReminderNotification = onCall(async (request) => {
     // Update reminder with notification sent status
     await getFirestore()
       .collection('reminders')
-      .doc(reminder.id)
+      .doc(reminderData.id)
       .update({
         notificationSent: true,
         lastNotificationSent: FieldValue.serverTimestamp(),
@@ -597,7 +677,7 @@ const sendReminderNotification = onCall(async (request) => {
       success: true, 
       messageId: response,
       userId,
-      reminderId: reminder.id,
+      reminderId: reminderData.id,
     };
     
   } catch (error) {
@@ -611,7 +691,7 @@ const sendReminderNotification = onCall(async (request) => {
   }
 });
 
-const sendCoupleReminderNotification = onCall(async (request) => {
+const sendCoupleReminderNotification = onCall(corsOptions, async (request) => {
   const { reminderId, language = 'vi' } = request.data;
   const userId = request.auth?.uid;
   

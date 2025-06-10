@@ -1,8 +1,8 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import app from '../../../shared/services/firebase/config';
 
-// Initialize Firebase Functions
-const functions = getFunctions(app, import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1');
+// Initialize Firebase Functions with Singapore region
+const functions = getFunctions(app, 'asia-southeast1');
 
 // Configure emulator for development
 if (import.meta.env.DEV) {
@@ -208,7 +208,7 @@ export const areFunctionsAvailable = () => {
  * @returns {string}
  */
 export const getFunctionsRegion = () => {
-  return import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1';
+  return 'asia-southeast1';
 };
 
 /**

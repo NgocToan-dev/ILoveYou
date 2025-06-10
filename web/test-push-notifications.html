@@ -62,14 +62,123 @@
             <button id="subscribe">Đăng ký Push Notifications</button>
             <button id="unsubscribe">Hủy đăng ký</button>
             <button id="testLocal">Test thông báo local</button>
+            <button id="testSimple">Test thông báo đơn giản</button>
+            <button id="testServer">Test thông báo từ server</button>
             <button id="getSubscription">Xem subscription</button>
         </div>
         
         <div id="subscriptionInfo" style="margin-top: 20px; font-size: 12px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; display: none;">
-            <h3>Subscription Info:</h3>
+            <h3>FCM Token:</h3>
             <pre id="subscriptionData"></pre>
         </div>
+        
+        <div style="margin-top: 20px; font-size: 14px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 5px;">
+            <h3>📋 Hướng dẫn test thông báo từ server:</h3>
+            <ol style="text-align: left; margin: 10px 0;">
+                <li>Ấn <strong>"Yêu cầu quyền thông báo"</strong> và cho phép</li>
+                <li>Ấn <strong>"Đăng ký Push Notifications"</strong> để lấy FCM token</li>
+                <li>Ấn <strong>"Test thông báo từ server"</strong> để gửi từ Firebase Functions</li>
+                <li><strong>🔔 Notifications sẽ hiển thị ở Windows notification area</strong> (góc dưới bên phải màn hình)</li>
+            </ol>
+            <p><strong>✨ Tối ưu hóa:</strong> Không có popup alerts, notifications hiển thị trực tiếp ở desktop!</p>
+            <p><strong>Region:</strong> Functions đang chạy trên <code>asia-southeast1</code> (Singapore)</p>
+        </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+        import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js';
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzQwGg_Hh9dDVNbkVZR3da0pmKjInpHE0",
+            authDomain: "loveapp-30-5.firebaseapp.com",
+            projectId: "loveapp-30-5",
+            storageBucket: "loveapp-30-5.firebasestorage.app",
+            messagingSenderId: "983282809749",
+            appId: "1:983282809749:android:b03d92d5f2c8fb4c50149c"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const functions = getFunctions(app, 'asia-southeast1'); // Singapore region
+        const messaging = getMessaging(app);
+        
+        // Make available globally
+        window.firebaseAuth = auth;
+        window.firebaseFunctions = functions;
+        window.firebaseMessaging = messaging;
+        window.currentUser = null;
+        window.fcmToken = null;
+        
+        // Listen for foreground messages - COMMENTED OUT để notifications hiển thị ở desktop
+        /*
+        onMessage(messaging, (payload) => {
+            console.log('Received foreground message:', payload);
+            const title = payload.notification?.title || 'Thông báo mới';
+            const body = payload.notification?.body || 'Có thông báo mới từ server';
+            
+            // Show custom alert
+            showNotificationAlert('NHẬN ĐƯỢC THÔNG BÁO!', `📨 ${title}\n💬 ${body}`, 'success');
+            
+            // Update status
+            updateStatus(`✅ Nhận được thông báo: ${title}`, 'success');
+        });
+        */
+        
+        // Auth state listener
+        onAuthStateChanged(auth, (user) => {
+            window.currentUser = user;
+            console.log('Auth state changed:', user ? 'logged in' : 'logged out');
+            
+            if (user) {
+                updateStatus('Đã đăng nhập Firebase ✓', 'success');
+                // Get FCM token after login
+                getFCMToken();
+            } else {
+                updateStatus('Chưa đăng nhập Firebase', 'info');
+            }
+        });
+        
+        // Get FCM token
+        async function getFCMToken() {
+            try {
+                const token = await getToken(messaging, { 
+                    vapidKey: 'BK7ULrATQ3qHjRl1tLgcwD5zrytEqDnt63_tJiCzyQy3lp6BFna-EUlI8Y47A3978oVPd9xQSfRvAFKhyUAViqM' 
+                });
+                
+                if (token) {
+                    console.log('FCM Token:', token);
+                    window.fcmToken = token;
+                    
+                    // Update token to Firebase
+                    if (window.currentUser) {
+                        const updateFCMToken = httpsCallable(functions, 'updateFCMToken');
+                        await updateFCMToken({
+                            token: token,
+                            platform: 'web'
+                        });
+                        console.log('FCM token updated to Firebase');
+                    }
+                } else {
+                    console.log('No FCM token available');
+                }
+            } catch (error) {
+                console.error('Error getting FCM token:', error);
+            }
+        }
+        
+        // Make getFCMToken available globally
+        window.getFCMToken = getFCMToken;
+        
+        // No need to sign in for simple test
+        updateStatus('Sẵn sàng test thông báo (không cần đăng nhập)', 'success');
+    </script>
 
     <script>
         // VAPID Public Key
@@ -141,22 +250,33 @@
         
         document.getElementById('subscribe').addEventListener('click', async () => {
             try {
-                const registration = await navigator.serviceWorker.ready;
-                const subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                });
+                // Request notification permission first
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    updateStatus('Cần quyền thông báo để đăng ký FCM', 'error');
+                    return;
+                }
                 
-                console.log('Subscription:', subscription);
-                updateStatus('Đã đăng ký push notifications!', 'success');
-                
-                // Show subscription info
-                document.getElementById('subscriptionInfo').style.display = 'block';
-                document.getElementById('subscriptionData').textContent = JSON.stringify(subscription.toJSON(), null, 2);
+                // Get FCM token using Firebase Messaging
+                if (window.getFCMToken) {
+                    await window.getFCMToken();
+                    
+                    if (window.fcmToken) {
+                        updateStatus('Đã đăng ký Firebase Cloud Messaging!', 'success');
+                        
+                        // Show FCM token info
+                        document.getElementById('subscriptionInfo').style.display = 'block';
+                        document.getElementById('subscriptionData').textContent = window.fcmToken;
+                    } else {
+                        updateStatus('Không thể lấy FCM token', 'error');
+                    }
+                } else {
+                    updateStatus('Firebase Messaging chưa sẵn sàng', 'error');
+                }
                 
             } catch (error) {
-                console.error('Subscription failed:', error);
-                updateStatus('Lỗi đăng ký: ' + error.message, 'error');
+                console.error('FCM subscription failed:', error);
+                updateStatus('Lỗi đăng ký FCM: ' + error.message, 'error');
             }
         });
         
@@ -178,17 +298,113 @@
         });
         
         document.getElementById('testLocal').addEventListener('click', () => {
+            console.log('Test local button clicked');
+            console.log('Notification permission:', Notification.permission);
+            
             if (Notification.permission === 'granted') {
-                new Notification('ILoveYou Test', {
-                    body: 'Đây là thông báo test từ ILoveYou app! 💕',
-                    icon: '/icons/icon-192x192.png',
-                    badge: '/icons/icon-72x72.png',
-                    tag: 'test-notification',
-                    vibrate: [200, 100, 200]
-                });
-                updateStatus('Đã gửi thông báo test', 'success');
+                try {
+                    const notification = new Notification('ILoveYou Test', {
+                        body: 'Đây là thông báo test từ ILoveYou app! 💕',
+                        tag: 'test-notification',
+                        vibrate: [200, 100, 200],
+                        requireInteraction: false
+                    });
+                    
+                    notification.onclick = function() {
+                        console.log('Notification clicked');
+                        window.focus();
+                        this.close();
+                    };
+                    
+                    notification.onshow = function() {
+                        console.log('Notification shown');
+                        // Không cần alert popup - desktop notification đã hiển thị
+                    };
+                    
+                    notification.onerror = function(error) {
+                        console.error('Notification error:', error);
+                        updateStatus('Lỗi hiển thị thông báo: ' + error, 'error');
+                    };
+                    
+                    updateStatus('Đã gửi thông báo test', 'success');
+                    console.log('Notification created successfully');
+                } catch (error) {
+                    console.error('Error creating notification:', error);
+                    updateStatus('Lỗi tạo thông báo: ' + error.message, 'error');
+                }
+            } else if (Notification.permission === 'denied') {
+                updateStatus('Quyền thông báo bị từ chối. Vui lòng bật trong cài đặt trình duyệt', 'error');
             } else {
-                updateStatus('Cần quyền thông báo trước', 'error');
+                updateStatus('Cần yêu cầu quyền thông báo trước', 'error');
+            }
+        });
+        
+        document.getElementById('testSimple').addEventListener('click', () => {
+            console.log('Test simple button clicked');
+            
+            if (Notification.permission === 'granted') {
+                try {
+                    // Very simple notification without any options that might cause issues
+                    const notification = new Notification('Test đơn giản');
+                    updateStatus('Đã gửi thông báo đơn giản', 'success'); 
+                    console.log('Simple notification created');
+                } catch (error) {
+                    console.error('Error creating simple notification:', error);
+                    updateStatus('Lỗi tạo thông báo đơn giản: ' + error.message, 'error');
+                }
+            } else {
+                updateStatus('Cần quyền thông báo trước. Ấn "Yêu cầu quyền thông báo"', 'error');
+            }
+        });
+        
+        document.getElementById('testServer').addEventListener('click', async () => {
+            console.log('Test server button clicked');
+            updateStatus('Đang gửi yêu cầu test từ server...', 'info');
+            
+            try {
+                // Check if FCM token is available
+                if (!window.fcmToken) {
+                    updateStatus('Cần lấy FCM token trước (ấn "Đăng ký Push Notifications")', 'error');
+                    return;
+                }
+                
+                // Check if Firebase Functions is available
+                if (!window.firebaseFunctions) {
+                    updateStatus('Firebase Functions chưa sẵn sàng', 'error');
+                    return;
+                }
+                
+                // Call Firebase Function using SDK - sử dụng hàm chính
+                const { httpsCallable } = await import('https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js');
+                const sendReminderNotification = httpsCallable(window.firebaseFunctions, 'sendReminderNotification');
+                
+                console.log('Calling sendReminderNotification with FCM token:', window.fcmToken);
+                const result = await sendReminderNotification({ 
+                    fcmToken: window.fcmToken,
+                    language: 'vi',
+                    reminder: {
+                        id: 'test-' + Date.now(),
+                        title: 'Test thông báo từ server',
+                        description: 'Đây là thông báo test từ Firebase Functions!',
+                        priority: 'medium',
+                        type: 'reminder'
+                    }
+                });
+                
+                console.log('Server test notification result:', result);
+                updateStatus('Đã gửi thông báo test từ server thành công! ✓', 'success');
+                
+                // Không cần alert popup - desktop notification sẽ tự xuất hiện
+                
+            } catch (error) {
+                console.error('Error calling server test notification:', error);
+                
+                let errorMessage = error.message;
+                if (error.code) {
+                    errorMessage = `${error.code}: ${error.message}`;
+                }
+                
+                updateStatus('Lỗi gửi thông báo từ server: ' + errorMessage, 'error');
             }
         });
         
@@ -212,6 +428,37 @@
         
         // Initialize when page loads
         initialize();
+        
+        // Add debug info
+        function debugNotifications() {
+            console.log('=== Debug Notifications ===');
+            console.log('Notification support:', 'Notification' in window);
+            console.log('Notification permission:', Notification.permission);
+            console.log('Service Worker support:', 'serviceWorker' in navigator);
+            console.log('PushManager support:', 'PushManager' in window);
+            console.log('User Agent:', navigator.userAgent);
+            
+            // Update status with debug info
+            const debugInfo = `
+                Notification: ${'Notification' in window ? '✓' : '✗'}
+                Permission: ${Notification.permission}
+                SW: ${'serviceWorker' in navigator ? '✓' : '✗'}
+                Push: ${'PushManager' in window ? '✓' : '✗'}
+            `;
+            
+            const debugDiv = document.createElement('div');
+            debugDiv.innerHTML = `<h3>Debug Info:</h3><pre>${debugInfo}</pre>`;
+            debugDiv.style.background = 'rgba(0,0,0,0.3)';
+            debugDiv.style.padding = '10px';
+            debugDiv.style.borderRadius = '5px';
+            debugDiv.style.marginTop = '20px';
+            debugDiv.style.fontSize = '12px';
+            
+            document.querySelector('.container').appendChild(debugDiv);
+        }
+        
+        // Run debug after a short delay
+        setTimeout(debugNotifications, 1000);
     </script>
 </body>
 </html> 

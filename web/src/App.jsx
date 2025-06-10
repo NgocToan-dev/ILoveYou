@@ -4,8 +4,10 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { ToastContainer } from 'react-toastify';
 import { muiLoveTheme } from './theme/loveTheme';
 import { AuthContextProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import AppRoutes from './routes/AppRoutes';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import PWAInstallPrompt, { PWAUpdatePrompt, PWAOfflinePrompt } from './components/pwa/PWAInstallPrompt';
@@ -13,6 +15,7 @@ import { useGlobalKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import performanceService from './services/performance';
 import webNotificationsService from './services/webNotifications';
 import { initializeNotificationService } from '@shared/services/firebase/reminders';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
 function App() {
@@ -61,14 +64,30 @@ function App() {
             }}
           >
             <AuthContextProvider>
-              <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
-                <AppRoutes />
-                
-                {/* PWA Components */}
-                <PWAInstallPrompt />
-                <PWAUpdatePrompt />
-                <PWAOfflinePrompt />
-              </Box>
+              <NotificationProvider>
+                <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+                  <AppRoutes />
+                  
+                  {/* PWA Components */}
+                  <PWAInstallPrompt />
+                  <PWAUpdatePrompt />
+                  <PWAOfflinePrompt />
+                  
+                  {/* Toast Notifications */}
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                  />
+                </Box>
+              </NotificationProvider>
             </AuthContextProvider>
           </BrowserRouter>
         </LocalizationProvider>

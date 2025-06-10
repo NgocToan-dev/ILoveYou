@@ -16,6 +16,7 @@ import CouplePage from '../pages/CouplePage';
 import NotesPage from '../pages/NotesPage';
 import RemindersPage from '../pages/RemindersPage';
 import ProfilePage from '../pages/ProfilePage';
+import NotificationDemo from '../pages/NotificationDemo';
 
 const AppRoutes = () => {
   return (
@@ -97,6 +98,16 @@ const AppRoutes = () => {
               <AuthGuard requireAuth={true}>
                 <AppLayout>
                   <ProfilePage />
+                </AppLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/notification-demo"
+            element={
+              <AuthGuard requireAuth={true}>
+                <AppLayout>
+                  <NotificationDemo />
                 </AppLayout>
               </AuthGuard>
             }

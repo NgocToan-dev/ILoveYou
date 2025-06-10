@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationTestPanel from './NotificationTestPanel';
 
 const NotificationSettings = () => {
   const { user } = useAuth();
@@ -248,6 +249,9 @@ const NotificationSettings = () => {
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
+      {/* Notification Test Panel */}
+      <NotificationTestPanel />
+      
       {/* Header */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
