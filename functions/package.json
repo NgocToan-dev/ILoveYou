@@ -2,13 +2,11 @@
   "name": "ilove-you-functions",
   "version": "1.0.0",
   "description": "Firebase Functions for ILoveYou app notifications and backend services",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "scripts": {
-    "lint": "eslint --ext .js,.ts .",
-    "build": "tsc",
-    "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
-    "shell": "npm run build && firebase functions:shell",
+    "lint": "eslint --ext .js .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
@@ -21,11 +19,8 @@
     "firebase-functions": "^6.1.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.17.0",
-    "@typescript-eslint/parser": "^8.17.0",
     "eslint": "^9.17.0",
-    "eslint-plugin-import": "^2.31.0",
-    "typescript": "^5.7.2"
+    "eslint-plugin-import": "^2.31.0"
   },
   "private": true
 }

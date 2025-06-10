@@ -2,11 +2,11 @@ const js = require('@eslint/js');
 
 module.exports = [
   {
-    ignores: ['lib/**', 'node_modules/**', 'eslint.config.js'],
+    ignores: ['node_modules/**', 'eslint.config.js'],
   },
   js.configs.recommended,
   {
-    files: ['src/**/*.ts', 'src/**/*.js'],
+    files: ['src/**/*.js'],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 2020,
@@ -32,27 +32,8 @@ module.exports = [
       'no-var': 'error',
       'object-shorthand': 'error',
       'prefer-arrow-callback': 'error',
-    },
-  },
-  {
-    files: ['src/**/*.ts'],
-    languageOptions: {
-      parser: require('@typescript-eslint/parser'),
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: 'module',
-      },
-    },
-    plugins: {
-      '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
-    },
-    rules: {
-      // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      'no-unused-vars': 'off', // Use TypeScript version instead
+      'quotes': ['error', 'single', { allowTemplateLiterals: true }],
+      'comma-dangle': ['error', 'always-multiline'],
     },
   },
 ];

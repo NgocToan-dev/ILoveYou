@@ -1,24 +1,33 @@
-import { initializeApp } from 'firebase-admin/app';
+const { initializeApp } = require('firebase-admin/app');
+const { setGlobalOptions } = require('firebase-functions/v2');
 
 // Initialize Firebase Admin SDK
 initializeApp();
 
+// Set global options for all functions
+setGlobalOptions({
+  maxInstances: 10,
+  region: 'asia-southeast1', // Singapore region
+  memory: '256MiB',
+});
+
 // Import notification modules
-import {
+const {
   scheduleReminderCheck,
   cleanupOldReminders,
   checkPeacefulDaysMilestones,
-  handleRecurringReminders
-} from './notifications/reminderScheduler';
-import {
+  handleRecurringReminders,
+} = require('./notifications/reminderScheduler');
+
+const {
   updateFCMToken,
   sendTestNotification,
   sendReminderNotification,
-  sendCoupleReminderNotification
-} from './notifications/fcmManager';
+  sendCoupleReminderNotification,
+} = require('./notifications/fcmManager');
 
 // Export all functions
-export {
+module.exports = {
   // Scheduled functions
   scheduleReminderCheck,
   cleanupOldReminders,
@@ -31,5 +40,5 @@ export {
   // Notification functions
   sendTestNotification,
   sendReminderNotification,
-  sendCoupleReminderNotification
-};
+  sendCoupleReminderNotification,
+}; 
