@@ -1,6 +1,9 @@
 // Service Worker for ILoveYou PWA with FCM Integration
 // Phase 1: Foundation with Firebase Cloud Messaging Support
 
+// Constants
+const DEFAULT_SNOOZE_DURATION = 15; // 15 minutes - Đồng nhất với toàn bộ hệ thống
+
 // Install event - activate immediately
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
@@ -219,18 +222,21 @@ async function handleSnooze(data) {
       clients[0].postMessage({
         type: 'SNOOZE_REMINDER',
         reminderId: data.reminderId || data.id,
-        duration: 10, // 10 minutes default
+        duration: data.duration || DEFAULT_SNOOZE_DURATION,
         source: 'service-worker'
       });
       
       clients[0].focus();
     } else {
       // No client windows open, open app and handle action
-      const url = data.url || `/?action=snooze&id=${data.reminderId || data.id}`;
+      const url = data.url || `/?action=snooze&id=${data.reminderId || data.id}&duration=${data.duration || DEFAULT_SNOOZE_DURATION}`;
       self.clients.openWindow(url);
     }
     
-    trackNotificationEvent('reminder_snoozed', { id: data.reminderId || data.id });
+    trackNotificationEvent('reminder_snoozed', { 
+      id: data.reminderId || data.id,
+      duration: data.duration || DEFAULT_SNOOZE_DURATION
+    });
   } catch (error) {
     console.error('Error handling snooze:', error);
   }

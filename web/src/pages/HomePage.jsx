@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Favorite, Note, Notifications, Person } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import LoveDaysCounter from '../components/ui/LoveDaysCounter';
+import PageHeader from '../components/layout/PageHeader';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
@@ -71,21 +72,13 @@ const HomePage = () => {
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-      {/* Welcome Section */}
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Favorite sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-        <Typography
-          variant="h3"
-          component="h1"
-          gutterBottom
-          sx={{ fontWeight: 'bold', color: 'primary.main' }}
-        >
-          Chào mừng {user?.displayName || 'bạn'} đến với ILoveYou
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-          Ứng dụng dành cho những cặp đôi yêu thương 💕
-        </Typography>
-      </Box>
+      {/* Header */}
+      <PageHeader
+        title={`Chào mừng ${user?.displayName || 'bạn'} đến với ILoveYou`}
+        subtitle="Ứng dụng dành cho những cặp đôi yêu thương 💕"
+        icon={<Favorite sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />}
+        centered={true}
+      />
 
       {/* Love Days Counter */}
       {!loading && (

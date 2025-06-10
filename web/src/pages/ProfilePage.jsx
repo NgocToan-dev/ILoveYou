@@ -42,6 +42,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationSettings from '../components/notifications/NotificationSettings';
+import PageHeader from '../components/layout/PageHeader';
 import { getDoc, doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { db } from '../services/firebase';
@@ -210,15 +211,12 @@ const ProfilePage = () => {
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 1, sm: 2 } }}>
       {/* Header */}
-      <Box sx={{ mb: 3, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-          <Person color="primary" />
-          Hồ sơ cá nhân
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Quản lý thông tin cá nhân và cài đặt tài khoản
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Hồ sơ cá nhân"
+        subtitle="Quản lý thông tin cá nhân và cài đặt tài khoản"
+        icon={<Person color="primary" />}
+        centered={true}
+      />
 
       {/* Status Messages */}
       {error && (

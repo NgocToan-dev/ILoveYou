@@ -32,6 +32,7 @@ import {
   PersonRemove
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import PageHeader from '../components/layout/PageHeader';
 import { getDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import {
@@ -231,15 +232,12 @@ const CouplePage = () => {
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 1, sm: 2 } }}>
       {/* Header */}
-      <Box sx={{ mb: 3, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-          <Favorite color="primary" />
-          Kết nối tình yêu
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Kết nối với người bạn yêu thương để chia sẻ những khoảnh khắc đặc biệt
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Kết nối tình yêu"
+        subtitle="Kết nối với người bạn yêu thương để chia sẻ những khoảnh khắc đặc biệt"
+        icon={<Favorite color="primary" />}
+        centered={true}
+      />
 
       {/* Status Messages */}
       {error && (

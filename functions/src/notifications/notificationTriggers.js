@@ -93,16 +93,50 @@ const onReminderUpdated = onDocumentUpdated('reminders/{reminderId}', async (eve
       logger.info('Reminder snoozed:', { reminderId, title: afterData.title });
 
       if (afterData.userId) {
-        await createNotificationForUser(afterData.userId, {
-          title: 'Nhắc nhở đã được hoãn',
-          body: `"${afterData.title}" đã được hoãn đến ${afterData.dueDate.toDate().toLocaleString('vi-VN')}`,
-          type: 'reminder',
-          data: {
-            reminderId,
-            action: 'snoozed'
-          },
-          actionUrl: `/reminders/${reminderId}`
-        });
+        // Kiểm tra user preferences để xem có muốn nhận thông báo hoãn không
+        try {
+          const userPrefsDoc = await db.collection('userNotificationPreferences')
+            .doc(afterData.userId)
+            .get();
+          
+          const userPrefs = userPrefsDoc.exists ? userPrefsDoc.data() : {};
+          
+          // Mặc định là true nếu không có setting, hoặc kiểm tra setting cụ thể
+          const shouldNotifySnooze = userPrefs.notifyOnSnooze !== false;
+          
+          if (shouldNotifySnooze) {
+            // Format date with Vietnam timezone
+            const snoozeDate = afterData.dueDate.toDate();
+            const formattedDate = snoozeDate.toLocaleString('vi-VN', {
+              timeZone: 'Asia/Ho_Chi_Minh',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            });
+
+            await createNotificationForUser(afterData.userId, {
+              title: 'Nhắc nhở đã được hoãn',
+              body: `"${afterData.title}" đã được hoãn đến ${formattedDate}`,
+              type: 'reminder',
+              data: {
+                reminderId,
+                action: 'snoozed'
+              },
+              actionUrl: `/reminders/${reminderId}`
+            });
+          } else {
+            logger.info('Snooze notification skipped due to user preference:', { 
+              userId: afterData.userId, 
+              reminderId 
+            });
+          }
+        } catch (prefError) {
+          logger.error('Error checking user preferences for snooze notification:', prefError);
+          // Fallback: không gửi thông báo nếu có lỗi khi kiểm tra preferences
+        }
       }
     }
 

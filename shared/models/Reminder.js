@@ -1,5 +1,6 @@
 import { REMINDER_TYPES, REMINDER_PRIORITIES, REMINDER_CATEGORIES, RECURRING_TYPES } from '../constants/reminders';
 import { formatDateString, toDate } from '../utils/dateUtils';
+import { SNOOZE_DURATION } from '../constants/notifications';
 
 export class Reminder {
   constructor(data = {}) {
@@ -219,7 +220,7 @@ export class Reminder {
   }
 
   // Snooze reminder
-  snooze(minutes = 60) {
+  snooze(minutes = SNOOZE_DURATION.DEFAULT) {
     this.snoozeUntil = new Date(Date.now() + minutes * 60 * 1000);
     this.updatedAt = new Date();
     return this;

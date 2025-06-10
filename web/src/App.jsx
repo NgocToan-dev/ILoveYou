@@ -65,13 +65,13 @@ function App() {
           >
             <AuthContextProvider>
               <NotificationProvider>
-                <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
-                  <AppRoutes />
-                  
-                  {/* PWA Components */}
-                  <PWAInstallPrompt />
-                  <PWAUpdatePrompt />
-                  <PWAOfflinePrompt />
+              <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+                <AppRoutes />
+                
+                {/* PWA Components */}
+                <PWAInstallPrompt />
+                <PWAUpdatePrompt />
+                <PWAOfflinePrompt />
                   
                   {/* Toast Notifications */}
                   <ToastContainer
@@ -86,7 +86,7 @@ function App() {
                     pauseOnHover
                     theme="light"
                   />
-                </Box>
+              </Box>
               </NotificationProvider>
             </AuthContextProvider>
           </BrowserRouter>

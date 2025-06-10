@@ -25,7 +25,8 @@ import {
   Person,
   Favorite,
   Warning,
-  Schedule
+  Schedule,
+  Snooze
 } from '@mui/icons-material';
 import {
   getCategoryDisplayInfo,
@@ -34,10 +35,13 @@ import {
 } from '../../../../shared/constants/reminders';
 import { formatDistanceToNow, isAfter, isBefore, addDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import SnoozeDialog from './SnoozeDialog';
+import { updateReminder } from '../../../../shared/services/firebase/reminders';
 
 const ReminderCard = ({ reminder, onEdit, onDelete, onToggleComplete }) => {
   const theme = useTheme();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
 
   const categoryInfo = getCategoryDisplayInfo(reminder.category);
   const priorityInfo = getPriorityDisplayInfo(reminder.priority);
@@ -83,6 +87,25 @@ const ReminderCard = ({ reminder, onEdit, onDelete, onToggleComplete }) => {
 
   const handleToggleComplete = () => {
     onToggleComplete(reminder);
+  };
+
+  const handleSnooze = async (duration) => {
+    try {
+      // Calculate new due date
+      const newDueDate = new Date(Date.now() + duration * 60 * 1000);
+      
+      // Update reminder
+      await updateReminder(reminder.id, {
+        dueDate: newDueDate,
+        snoozeUntil: newDueDate,
+        updatedAt: new Date()
+      });
+      
+      console.log(`✅ Reminder snoozed for ${duration} minutes until ${newDueDate.toLocaleString('vi-VN')}`);
+    } catch (error) {
+      console.error('❌ Error snoozing reminder:', error);
+      alert('Không thể hoãn nhắc nhở. Vui lòng thử lại.');
+    }
   };
 
   return (
@@ -243,6 +266,18 @@ const ReminderCard = ({ reminder, onEdit, onDelete, onToggleComplete }) => {
             )}
           </Box>
           <Box>
+            {/* Snooze button - only show for overdue or today reminders that are not completed */}
+            {(dueDateStatus?.status === 'overdue' || dueDateStatus?.status === 'today') && !reminder.completed && (
+              <Tooltip title="Hoãn nhắc nhở">
+                <IconButton 
+                  size="small" 
+                  onClick={() => setSnoozeDialogOpen(true)}
+                  sx={{ color: 'warning.main' }}
+                >
+                  <Snooze fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title="Chỉnh sửa">
               <IconButton 
                 size="small" 
@@ -264,6 +299,14 @@ const ReminderCard = ({ reminder, onEdit, onDelete, onToggleComplete }) => {
           </Box>
         </CardActions>
       </Card>
+
+      {/* Snooze Dialog */}
+      <SnoozeDialog
+        open={snoozeDialogOpen}
+        onClose={() => setSnoozeDialogOpen(false)}
+        onSnooze={handleSnooze}
+        reminderTitle={reminder.title}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog

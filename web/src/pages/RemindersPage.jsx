@@ -37,6 +37,7 @@ import {
   Schedule
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import PageHeader from '../components/layout/PageHeader';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import {
@@ -197,15 +198,11 @@ const RemindersPage = () => {
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 1, sm: 2 } }}>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Notifications color="primary" />
-          Nhắc nhở tình yêu
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Quản lý những lời nhắc quan trọng cho bạn và người yêu
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Nhắc nhở tình yêu"
+        subtitle="Quản lý những lời nhắc quan trọng cho bạn và người yêu"
+        icon={<Notifications color="primary" />}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>

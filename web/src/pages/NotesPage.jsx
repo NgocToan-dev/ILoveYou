@@ -33,6 +33,7 @@ import {
   Clear
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import PageHeader from '../components/layout/PageHeader';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import {
@@ -172,15 +173,11 @@ const NotesPage = () => {
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 1, sm: 2 } }}>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Note color="primary" />
-          Ghi chú tình yêu
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Lưu giữ những khoảnh khắc đẹp và suy nghĩ của bạn
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Ghi chú tình yêu"
+        subtitle="Lưu giữ những khoảnh khắc đẹp và suy nghĩ của bạn"
+        icon={<Note color="primary" />}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>

@@ -29,6 +29,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationTestPanel from '../components/notifications/NotificationTestPanel';
 import NotificationBell from '../components/notifications/NotificationBell';
+import PageHeader from '../components/layout/PageHeader';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import webNotificationsService from '../services/webNotifications';
@@ -106,25 +107,19 @@ const NotificationDemo = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Notification System Demo
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Test và demo hệ thống thông báo hoàn chỉnh
-          </Typography>
-        </Box>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <PageHeader
+        title="Notification System Demo"
+        subtitle="Test và demo hệ thống thông báo hoàn chỉnh"
+        icon={<NotificationsIcon color="primary" />}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
           <Chip 
             label={`${unreadCount} chưa đọc`} 
             color={unreadCount > 0 ? 'error' : 'default'}
             variant="outlined"
           />
-          <NotificationBell />
         </Box>
-      </Box>
+      </PageHeader>
 
       {/* Status Message */}
       {message && (

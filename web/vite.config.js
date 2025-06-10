@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react({
       include: ['**/*.jsx', '**/*.js'],
-    }),    VitePWA({
+    }), VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       srcDir: 'public',
@@ -19,7 +19,8 @@ export default defineConfig({
         swDest: 'dist/sw.js',
         globDirectory: 'dist',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        maximumFileSizeToCacheInBytes: 3000000,      },
+        maximumFileSizeToCacheInBytes: 3000000,
+      },
       manifest: {
         name: 'ILoveYou - Couple Love Tracker',
         short_name: 'ILoveYou',
@@ -127,7 +128,7 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
-          }        ]
+          }]
       }
     })
   ],

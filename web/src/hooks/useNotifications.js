@@ -9,6 +9,8 @@ import {
   getNotificationPreferences,
   updateNotificationPreferences
 } from '../services/firebaseFunctions';
+import { updateReminder } from '@shared/services/firebase/reminders';
+import { SNOOZE_DURATION } from '@shared/constants/notifications';
 
 export const useNotifications = () => {
   const [permission, setPermission] = useState('default');
@@ -56,9 +58,76 @@ export const useNotifications = () => {
       // This will be used by parent components to update reminder state
     };
 
-    const handleReminderSnooze = (data) => {
+    const handleReminderSnooze = async (data) => {
       console.log('Reminder snoozed via notification:', data);
-      // This will be used by parent components to update reminder state
+      
+      try {
+        const { reminderId, duration = SNOOZE_DURATION.DEFAULT } = data; // Sử dụng constants đồng nhất
+        
+        // Validate input
+        if (!reminderId) {
+          console.error('No reminder ID provided for snooze');
+          return { success: false, error: 'No reminder ID provided' };
+        }
+
+        if (!user) {
+          console.error('User not authenticated for snooze operation');
+          return { success: false, error: 'User not authenticated' };
+        }
+
+        // Validate duration against defined constants
+        const snoozeDuration = Math.max(
+          SNOOZE_DURATION.MIN, 
+          Math.min(SNOOZE_DURATION.MAX, parseInt(duration) || SNOOZE_DURATION.DEFAULT)
+        );
+        
+        // Calculate new due date (current time + snooze duration in minutes)
+        const newDueDate = new Date(Date.now() + snoozeDuration * 60 * 1000);
+        
+        console.log(`Snoozing reminder ${reminderId} for ${snoozeDuration} minutes until ${newDueDate.toLocaleString('vi-VN')}`);
+        
+        // Update reminder with new due date and additional snooze metadata
+        const updateResult = await updateReminder(reminderId, {
+          dueDate: newDueDate,
+          snoozeUntil: newDueDate,
+          snoozed: true,
+          snoozeCount: (data.snoozeCount || 0) + 1,
+          lastSnoozedAt: new Date(),
+          lastSnoozeDuration: snoozeDuration
+        });
+        
+        if (updateResult) {
+          console.log('✅ Reminder snoozed successfully');
+          
+          // Notify service worker of successful snooze
+          if (typeof webNotificationsService.sendResponse === 'function') {
+            webNotificationsService.sendResponse('reminder_snooze_result', {
+              success: true,
+              reminderId,
+              newDueDate: newDueDate.toISOString(),
+              duration: snoozeDuration
+            });
+          }
+          
+          return { success: true, newDueDate, duration: snoozeDuration };
+        } else {
+          throw new Error('Failed to update reminder in database');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error snoozing reminder:', error);
+        
+        // Notify service worker of failed snooze
+        if (typeof webNotificationsService.sendResponse === 'function') {
+          webNotificationsService.sendResponse('reminder_snooze_result', {
+            success: false,
+            error: error.message,
+            reminderId: data.reminderId
+          });
+        }
+        
+        return { success: false, error: error.message };
+      }
     };
 
     const handleAnalyticsEvent = (data) => {
@@ -77,7 +146,7 @@ export const useNotifications = () => {
       webNotificationsService.off('reminder_snooze', handleReminderSnooze);
       webNotificationsService.off('analytics_event', handleAnalyticsEvent);
     };
-  }, []);
+  }, [user]); // Add user dependency since handleReminderSnooze uses it
 
   // Request notification permission
   const requestPermission = useCallback(async () => {
@@ -236,6 +305,24 @@ export const useNotifications = () => {
     }
   }, [user]);
 
+  // Toggle snooze notification preference
+  const toggleSnoozeNotification = useCallback(async (enabled) => {
+    try {
+      if (!user) {
+        return { success: false, error: 'User not authenticated' };
+      }
+      
+      const result = await updateNotificationPreferences({
+        notifyOnSnooze: enabled
+      });
+      
+      return result;
+    } catch (err) {
+      console.error('Error updating snooze notification preference:', err);
+      return { success: false, error: err.message };
+    }
+  }, [user]);
+
   // Get system diagnostic information
   const getSystemStatus = useCallback(() => {
     return webNotificationsService.getSystemStatus();
@@ -311,7 +398,10 @@ export const useNotifications = () => {
     offAnalyticsEvent: (handler) => webNotificationsService.off('analytics_event', handler),
     
     // New method
-    sendReminderFromServer
+    sendReminderFromServer,
+    
+    // New method
+    toggleSnoozeNotification
   };
 };
 
