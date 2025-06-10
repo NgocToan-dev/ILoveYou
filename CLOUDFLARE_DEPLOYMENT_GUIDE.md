@@ -23,13 +23,24 @@ Trong Cloudflare Pages Dashboard:
 2. Thêm các biến sau:
 
 ```
+# Firebase Configuration
 VITE_FIREBASE_API_KEY=your_firebase_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com  
 VITE_FIREBASE_PROJECT_ID=your_project_id
 VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
+
+# App Configuration
 VITE_APP_ENV=production
+VITE_APP_VERSION=1.0.0
+
+# Push Notifications
+VITE_VAPID_PUBLIC_KEY=BK7ULrATQ3qHjRl1tLgcwD5zrytEqDnt63_tJiCzyQy3lp6BFna-EUlI8Y47A3978oVPd9xQSfRvAFKhyUAViqM
+VITE_FIREBASE_VAPID_KEY=BK7ULrATQ3qHjRl1tLgcwD5zrytEqDnt63_tJiCzyQy3lp6BFna-EUlI8Y47A3978oVPd9xQSfRvAFKhyUAViqM
+
+# Firebase Functions (optional - Singapore region for better performance in SEA)
+VITE_FIREBASE_FUNCTIONS_REGION=asia-southeast1
 ```
 
 ### Bước 4: Deploy

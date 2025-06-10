@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Push Notifications - ILoveYou</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #e91e63, #f8bbd9);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        button {
+            background: #e91e63;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #c2185b;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .info { background: rgba(33, 150, 243, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Test Push Notifications</h1>
+        <p>Trang này để test push notifications cho ILoveYou app</p>
+        
+        <div id="status" class="status info">
+            Đang kiểm tra hỗ trợ push notifications...
+        </div>
+        
+        <div id="controls">
+            <button id="requestPermission">Yêu cầu quyền thông báo</button>
+            <button id="subscribe">Đăng ký Push Notifications</button>
+            <button id="unsubscribe">Hủy đăng ký</button>
+            <button id="testLocal">Test thông báo local</button>
+            <button id="getSubscription">Xem subscription</button>
+        </div>
+        
+        <div id="subscriptionInfo" style="margin-top: 20px; font-size: 12px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; display: none;">
+            <h3>Subscription Info:</h3>
+            <pre id="subscriptionData"></pre>
+        </div>
+    </div>
+
+    <script>
+        // VAPID Public Key
+        const VAPID_PUBLIC_KEY = 'BK7ULrATQ3qHjRl1tLgcwD5zrytEqDnt63_tJiCzyQy3lp6BFna-EUlI8Y47A3978oVPd9xQSfRvAFKhyUAViqM';
+        
+        // Convert VAPID key to Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+        
+        // Update status
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        // Check support
+        function checkSupport() {
+            if (!('serviceWorker' in navigator)) {
+                updateStatus('Service Worker không được hỗ trợ', 'error');
+                return false;
+            }
+            
+            if (!('PushManager' in window)) {
+                updateStatus('Push Manager không được hỗ trợ', 'error');
+                return false;
+            }
+            
+            updateStatus('Push Notifications được hỗ trợ!', 'success');
+            return true;
+        }
+        
+        // Initialize
+        async function initialize() {
+            if (!checkSupport()) return;
+            
+            // Register service worker
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                console.log('Service Worker registered:', registration);
+                updateStatus('Service Worker đã được đăng ký', 'success');
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+                updateStatus('Lỗi đăng ký Service Worker: ' + error.message, 'error');
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('requestPermission').addEventListener('click', async () => {
+            try {
+                const permission = await Notification.requestPermission();
+                updateStatus(`Quyền thông báo: ${permission}`, permission === 'granted' ? 'success' : 'error');
+            } catch (error) {
+                updateStatus('Lỗi yêu cầu quyền: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('subscribe').addEventListener('click', async () => {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                });
+                
+                console.log('Subscription:', subscription);
+                updateStatus('Đã đăng ký push notifications!', 'success');
+                
+                // Show subscription info
+                document.getElementById('subscriptionInfo').style.display = 'block';
+                document.getElementById('subscriptionData').textContent = JSON.stringify(subscription.toJSON(), null, 2);
+                
+            } catch (error) {
+                console.error('Subscription failed:', error);
+                updateStatus('Lỗi đăng ký: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('unsubscribe').addEventListener('click', async () => {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    updateStatus('Đã hủy đăng ký push notifications', 'success');
+                    document.getElementById('subscriptionInfo').style.display = 'none';
+                } else {
+                    updateStatus('Không có subscription để hủy', 'info');
+                }
+            } catch (error) {
+                updateStatus('Lỗi hủy đăng ký: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('testLocal').addEventListener('click', () => {
+            if (Notification.permission === 'granted') {
+                new Notification('ILoveYou Test', {
+                    body: 'Đây là thông báo test từ ILoveYou app! 💕',
+                    icon: '/icons/icon-192x192.png',
+                    badge: '/icons/icon-72x72.png',
+                    tag: 'test-notification',
+                    vibrate: [200, 100, 200]
+                });
+                updateStatus('Đã gửi thông báo test', 'success');
+            } else {
+                updateStatus('Cần quyền thông báo trước', 'error');
+            }
+        });
+        
+        document.getElementById('getSubscription').addEventListener('click', async () => {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                
+                if (subscription) {
+                    document.getElementById('subscriptionInfo').style.display = 'block';
+                    document.getElementById('subscriptionData').textContent = JSON.stringify(subscription.toJSON(), null, 2);
+                    updateStatus('Đã hiển thị subscription info', 'success');
+                } else {
+                    updateStatus('Không có subscription', 'info');
+                    document.getElementById('subscriptionInfo').style.display = 'none';
+                }
+            } catch (error) {
+                updateStatus('Lỗi lấy subscription: ' + error.message, 'error');
+            }
+        });
+        
+        // Initialize when page loads
+        initialize();
+    </script>
+</body>
+</html> 
