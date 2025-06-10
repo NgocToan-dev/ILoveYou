@@ -108,6 +108,9 @@ ios/Pods/
 # TypeScript
 *.tsbuildinfo
 
+# Firebase Functions compiled output
+functions/lib/
+
 # Optional npm cache directory
 .npm
 
