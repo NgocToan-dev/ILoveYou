@@ -18,6 +18,7 @@ import './App.css';
 function App() {
   // Initialize global keyboard shortcuts
   useGlobalKeyboardShortcuts();
+  
   // Initialize performance monitoring
   useEffect(() => {
     // Initialize notification service for shared reminders
@@ -51,7 +52,8 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider theme={muiLoveTheme}>
-        <CssBaseline />        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <CssBaseline />
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <BrowserRouter
             future={{
               v7_startTransition: true,
