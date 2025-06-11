@@ -17,20 +17,23 @@ import {
   ToggleButton,
   IconButton,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Divider
 } from '@mui/material';
 import {
   Close,
   Lock,
   Share,
-  Edit as EditIcon
+  Edit as EditIcon,
+  AttachFile
 } from '@mui/icons-material';
-import { 
-  updateNote, 
-  NOTE_CATEGORIES, 
+import {
+  updateNote,
+  NOTE_CATEGORIES,
   NOTE_TYPES,
-  getCategoryDisplayInfo 
+  getCategoryDisplayInfo
 } from '../../../../shared/services/firebase/notes';
+import MediaUpload from './MediaUpload';
 
 const EditNoteModal = ({ open, onClose, note }) => {
   const theme = useTheme();
@@ -41,6 +44,7 @@ const EditNoteModal = ({ open, onClose, note }) => {
     category: NOTE_CATEGORIES.LOVE_LETTERS,
     type: NOTE_TYPES.PRIVATE
   });
+  const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -53,6 +57,7 @@ const EditNoteModal = ({ open, onClose, note }) => {
         category: note.category || NOTE_CATEGORIES.LOVE_LETTERS,
         type: note.type || NOTE_TYPES.PRIVATE
       });
+      setMedia(note.media || []);
     }
   }, [note]);
 
@@ -82,6 +87,7 @@ const EditNoteModal = ({ open, onClose, note }) => {
         title: formData.title.trim(),
         content: formData.content.trim(),
         category: formData.category,
+        media: media.length > 0 ? media : null,
         // Note: type cannot be changed after creation for data consistency
       };
 
@@ -102,6 +108,7 @@ const EditNoteModal = ({ open, onClose, note }) => {
       category: NOTE_CATEGORIES.LOVE_LETTERS,
       type: NOTE_TYPES.PRIVATE
     });
+    setMedia([]);
     setError('');
     onClose();
   };
@@ -110,7 +117,8 @@ const EditNoteModal = ({ open, onClose, note }) => {
   const hasChanges = note && (
     formData.title !== note.title ||
     formData.content !== note.content ||
-    formData.category !== note.category
+    formData.category !== note.category ||
+    JSON.stringify(media) !== JSON.stringify(note.media || [])
   );
 
   if (!note) return null;
@@ -241,6 +249,21 @@ const EditNoteModal = ({ open, onClose, note }) => {
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right' }}>
             {formData.content.length} ký tự
           </Typography>
+
+          {/* Media Upload Section */}
+          <Divider sx={{ my: 2 }} />
+          
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AttachFile sx={{ fontSize: 20 }} />
+              Đính kèm ảnh/video
+            </Typography>
+            <MediaUpload
+              media={media}
+              onMediaChange={setMedia}
+              maxMedia={5}
+            />
+          </Box>
 
           {/* Last updated info */}
           {note.updatedAt && (

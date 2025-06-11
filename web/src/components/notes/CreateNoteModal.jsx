@@ -17,20 +17,23 @@ import {
   ToggleButton,
   IconButton,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Divider
 } from '@mui/material';
 import {
   Close,
   Lock,
   Share,
-  Note as NoteIcon
+  Note as NoteIcon,
+  AttachFile
 } from '@mui/icons-material';
-import { 
-  createNote, 
-  NOTE_CATEGORIES, 
+import {
+  createNote,
+  NOTE_CATEGORIES,
   NOTE_TYPES,
-  getCategoryDisplayInfo 
+  getCategoryDisplayInfo
 } from '../../../../shared/services/firebase/notes';
+import MediaUpload from './MediaUpload';
 
 const CreateNoteModal = ({ open, onClose, userId, coupleId }) => {
   const theme = useTheme();
@@ -41,6 +44,7 @@ const CreateNoteModal = ({ open, onClose, userId, coupleId }) => {
     category: NOTE_CATEGORIES.LOVE_LETTERS,
     type: NOTE_TYPES.PRIVATE
   });
+  const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -72,6 +76,7 @@ const CreateNoteModal = ({ open, onClose, userId, coupleId }) => {
         category: formData.category,
         type: formData.type,
         userId: userId,
+        media: media.length > 0 ? media : null,
       };
 
       if (formData.type === NOTE_TYPES.SHARED) {
@@ -100,6 +105,7 @@ const CreateNoteModal = ({ open, onClose, userId, coupleId }) => {
       category: NOTE_CATEGORIES.LOVE_LETTERS,
       type: NOTE_TYPES.PRIVATE
     });
+    setMedia([]);
     setError('');
     onClose();
   };
@@ -230,6 +236,21 @@ const CreateNoteModal = ({ open, onClose, userId, coupleId }) => {
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right' }}>
             {formData.content.length} ký tự
           </Typography>
+
+          {/* Media Upload Section */}
+          <Divider sx={{ my: 2 }} />
+          
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AttachFile sx={{ fontSize: 20 }} />
+              Đính kèm ảnh/video
+            </Typography>
+            <MediaUpload
+              media={media}
+              onMediaChange={setMedia}
+              maxMedia={5}
+            />
+          </Box>
         </Box>
       </DialogContent>
 

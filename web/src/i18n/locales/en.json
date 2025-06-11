@@ -59,6 +59,18 @@
       "uploading": "Uploading",
       "photoCount": "{{count}} of {{max}} photos"
     },
+    "media": {
+      "title": "Media",
+      "dropHere": "Drop media files here",
+      "dragAndDrop": "Drag and drop photos/videos or click to browse",
+      "supportedFormats": "Images: JPG, PNG, GIF, WebP | Videos: MP4, MOV, AVI, WebM",
+      "maxMedia": "Maximum {{max}} files",
+      "uploading": "Uploading",
+      "mediaCount": "{{count}} of {{max}} files",
+      "largeVideoWarning": "Large video file detected. Upload may take longer.",
+      "uploadError": "Failed to upload media file",
+      "deleteError": "Failed to delete media file"
+    },
     "noNotes": "No notes yet",
     "createFirst": "Create your first love note to capture precious memories!"
   },

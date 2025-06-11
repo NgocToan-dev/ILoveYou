@@ -13,7 +13,10 @@ import {
   DialogActions,
   Button,
   useTheme,
-  Tooltip
+  Tooltip,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar
 } from '@mui/material';
 import {
   Edit,
@@ -21,11 +24,15 @@ import {
   Share,
   Lock,
   MoreVert,
-  Visibility
+  Visibility,
+  Photo,
+  VideoFile,
+  PlayArrow
 } from '@mui/icons-material';
 import { getCategoryDisplayInfo, NOTE_TYPES } from '../../../../shared/constants/notes';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import VideoDisplay from './VideoDisplay';
 
 const NoteCard = ({ note, onEdit, onDelete }) => {
   const theme = useTheme();
@@ -123,13 +130,67 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
           </Typography>
 
           {note.content.length > 150 && (
-            <Button 
-              size="small" 
+            <Button
+              size="small"
               onClick={() => setExpanded(!expanded)}
               sx={{ p: 0, minWidth: 'auto', textTransform: 'none' }}
             >
               {expanded ? 'Thu gọn' : 'Xem thêm'}
             </Button>
+          )}
+
+          {/* Media Attachments */}
+          {note.media && note.media.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <ImageList cols={note.media.length === 1 ? 1 : 2} gap={8} sx={{ m: 0 }}>
+                {note.media.map((mediaItem, index) => (
+                  <ImageListItem key={index}>
+                    {mediaItem.isVideo ? (
+                      <VideoDisplay
+                        videoUrl={mediaItem.url}
+                        thumbnail={mediaItem.thumbnail}
+                        title={mediaItem.name}
+                        maxHeight="200px"
+                      />
+                    ) : (
+                      <Box sx={{ position: 'relative' }}>
+                        <img
+                          src={mediaItem.url}
+                          alt={mediaItem.name}
+                          loading="lazy"
+                          style={{
+                            width: '100%',
+                            height: '150px',
+                            objectFit: 'cover',
+                            borderRadius: 8,
+                            display: 'block'
+                          }}
+                        />
+                        <ImageListItemBar
+                          sx={{
+                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+                          }}
+                          position="top"
+                          actionIcon={
+                            <Photo sx={{ color: 'white', fontSize: 16 }} />
+                          }
+                          actionPosition="right"
+                        />
+                      </Box>
+                    )}
+                  </ImageListItem>
+                ))}
+              </ImageList>
+              
+              {/* Media count indicator */}
+              {note.media.length > 0 && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  {note.media.filter(m => !m.isVideo).length > 0 && `${note.media.filter(m => !m.isVideo).length} ảnh`}
+                  {note.media.filter(m => !m.isVideo).length > 0 && note.media.filter(m => m.isVideo).length > 0 && ', '}
+                  {note.media.filter(m => m.isVideo).length > 0 && `${note.media.filter(m => m.isVideo).length} video`}
+                </Typography>
+              )}
+            </Box>
           )}
 
           {/* Metadata */}

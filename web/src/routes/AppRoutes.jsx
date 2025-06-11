@@ -18,6 +18,9 @@ import RemindersPage from '../pages/RemindersPage';
 import ProfilePage from '../pages/ProfilePage';
 import NotificationDemo from '../pages/NotificationDemo';
 
+// Test Components (Development)
+import StorageTestPanel from '../components/storage/StorageTestPanel';
+
 const AppRoutes = () => {
   return (
     <AuthProvider>
@@ -108,6 +111,16 @@ const AppRoutes = () => {
               <AuthGuard requireAuth={true}>
                 <AppLayout>
                   <NotificationDemo />
+                </AppLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/storage-test"
+            element={
+              <AuthGuard requireAuth={true}>
+                <AppLayout>
+                  <StorageTestPanel />
                 </AppLayout>
               </AuthGuard>
             }

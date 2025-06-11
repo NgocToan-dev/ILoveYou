@@ -133,7 +133,7 @@
     "shared": "Ghi chú chung",
     "categories": {
       "loveLetters": "Thư tình",
-      "memories": "Kỷ niệm", 
+      "memories": "Kỷ niệm",
       "dreams": "Ước mơ",
       "gratitude": "Lòng biết ơn"
     },
@@ -142,7 +142,28 @@
     "delete": "Xóa ghi chú",
     "save": "Lưu ghi chú",
     "content": "Nội dung ghi chú",
-    "category": "Danh mục"
+    "category": "Danh mục",
+    "photos": {
+      "title": "Ảnh",
+      "dropHere": "Thả ảnh vào đây",
+      "dragAndDrop": "Kéo thả ảnh hoặc click để chọn",
+      "supportedFormats": "Hỗ trợ JPG, PNG, GIF, WebP",
+      "maxPhotos": "Tối đa {{max}} ảnh",
+      "uploading": "Đang tải lên",
+      "photoCount": "{{count}} trên {{max}} ảnh"
+    },
+    "media": {
+      "title": "Media",
+      "dropHere": "Thả file media vào đây",
+      "dragAndDrop": "Kéo thả ảnh/video hoặc click để chọn",
+      "supportedFormats": "Ảnh: JPG, PNG, GIF, WebP | Video: MP4, MOV, AVI, WebM",
+      "maxMedia": "Tối đa {{max}} file",
+      "uploading": "Đang tải lên",
+      "mediaCount": "{{count}} trên {{max}} file",
+      "largeVideoWarning": "Phát hiện file video lớn. Quá trình tải lên có thể mất nhiều thời gian.",
+      "uploadError": "Không thể tải lên file media",
+      "deleteError": "Không thể xóa file media"
+    }
   },
   "reminders": {
     "title": "Nhắc nhở tình yêu",

@@ -25,9 +25,6 @@ import {
   Note,
   Add,
   Search,
-  FilterList,
-  Edit,
-  Delete,
   Share,
   Lock,
   Clear
@@ -37,13 +34,10 @@ import PageHeader from '../components/layout/PageHeader';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import {
-  subscribeToUserPrivateNotes,
-  subscribeToCoupleSharedNotes,
-  deleteNote,
+  notesService,
   NOTE_CATEGORIES,
-  NOTE_TYPES,
-  getCategoryDisplayInfo
-} from '../../../shared/services/firebase/notes';
+  getNoteCategoryDisplayInfo
+} from '../services';
 import CreateNoteModal from '../components/notes/CreateNoteModal';
 import EditNoteModal from '../components/notes/EditNoteModal';
 import NoteCard from '../components/notes/NoteCard';
@@ -90,7 +84,7 @@ const NotesPage = () => {
   useEffect(() => {
     if (!user?.uid) return;
 
-    const unsubscribe = subscribeToUserPrivateNotes(
+    const unsubscribe = notesService.subscribeToUserPrivateNotes(
       user.uid,
       selectedCategory || null,
       (privateNotes) => {
@@ -108,7 +102,7 @@ const NotesPage = () => {
       return;
     }
 
-    const unsubscribe = subscribeToCoupleSharedNotes(
+    const unsubscribe = notesService.subscribeToCoupleSharedNotes(
       coupleId,
       selectedCategory || null,
       (coupleNotes) => {
@@ -148,7 +142,7 @@ const NotesPage = () => {
 
   const handleDeleteNote = async (noteId) => {
     try {
-      await deleteNote(noteId);
+      await notesService.deleteNote(noteId);
     } catch (error) {
       console.error('Error deleting note:', error);
       setError('Không thể xóa ghi chú');
@@ -225,7 +219,7 @@ const NotesPage = () => {
                 >
                   <MenuItem value="">Tất cả</MenuItem>
                   {Object.values(NOTE_CATEGORIES).map((category) => {
-                    const info = getCategoryDisplayInfo(category);
+                    const info = getNoteCategoryDisplayInfo(category);
                     return (
                       <MenuItem key={category} value={category}>
                         {info.emoji} {info.name}
